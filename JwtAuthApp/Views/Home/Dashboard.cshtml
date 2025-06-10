@@ -1,0 +1,191 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+            <p class="text-muted mb-0">Bem-vindo ao painel principal do sistema</p>
+        </div>
+        <div class="text-end">
+            <small class="text-muted">Último acesso: <span id="lastAccess">Agora</span></small>
+        </div>
+    </div>
+
+    <div id="dashboardContent">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando dados do dashboard...</p>
+        </div>
+    </div>
+    
+    <div id="dashboardData" style="display: none;">
+        <!-- Cards de estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Vendas</h5>
+                                <h3 id="totalVendas">R$ 0,00</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Clientes</h5>
+                                <h3 id="numeroClientes">0</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Pedidos</h5>
+                                <h3 id="pedidosPendentes">0</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-shopping-cart fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Crescimento</h5>
+                                <h3 id="crescimentoMensal">0%</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar me-2"></i>Vendas por Mês</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="vendasChart">
+                            <div class="row text-center">
+                                <div class="col">Jan<br><strong id="jan">0</strong></div>
+                                <div class="col">Fev<br><strong id="fev">0</strong></div>
+                                <div class="col">Mar<br><strong id="mar">0</strong></div>
+                                <div class="col">Abr<br><strong id="abr">0</strong></div>
+                                <div class="col">Mai<br><strong id="mai">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users me-2"></i>Clientes Ativos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="clientesChart">
+                            <div class="row text-center">
+                                <div class="col">Jan<br><strong id="cjan">0</strong></div>
+                                <div class="col">Fev<br><strong id="cfev">0</strong></div>
+                                <div class="col">Mar<br><strong id="cmar">0</strong></div>
+                                <div class="col">Abr<br><strong id="cabr">0</strong></div>
+                                <div class="col">Mai<br><strong id="cmai">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mostrar navbar
+        document.getElementById('mainNav').style.display = 'block';
+        
+        // Verificar autenticação
+        checkAuthentication();
+        
+        // Carregar dados do dashboard
+        loadDashboardData();
+        
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Preencher dados
+                    document.getElementById('totalVendas').textContent = 
+                        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                        .format(data.dados.totalVendas);
+                    document.getElementById('numeroClientes').textContent = data.dados.numeroClientes;
+                    document.getElementById('pedidosPendentes').textContent = data.dados.pedidosPendentes;
+                    document.getElementById('crescimentoMensal').textContent = data.dados.crescimentoMensal + '%';
+                    
+                    // Preencher gráficos
+                    const meses = ['jan', 'fev', 'mar', 'abr', 'mai'];
+                    data.graficos[0].valores.forEach((valor, index) => {
+                        if (meses[index]) {
+                            document.getElementById(meses[index]).textContent = 
+                                new Intl.NumberFormat('pt-BR').format(valor);
+                        }
+                    });
+                    
+                    data.graficos[1].valores.forEach((valor, index) => {
+                        if (meses[index]) {
+                            document.getElementById('c' + meses[index]).textContent = 
+                                new Intl.NumberFormat('pt-BR').format(valor);
+                        }
+                    });
+                    
+                    // Mostrar dados
+                    document.getElementById('dashboardContent').style.display = 'none';
+                    document.getElementById('dashboardData').style.display = 'block';
+                } else {
+                    throw new Error('Erro ao carregar dados');
+                }
+            } catch (error) {
+                document.getElementById('dashboardContent').innerHTML = 
+                    '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Erro ao carregar dados do dashboard</div>';
+            }
+        }
+    </script>
+} 

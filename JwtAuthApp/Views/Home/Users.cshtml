@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Usuários";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-users me-2"></i>Gerenciamento de Usuários</h2>
+            <p class="text-muted mb-0">Administre todos os usuários do sistema</p>
+        </div>
+        <div>
+            <button class="btn btn-primary">
+                <i class="fas fa-user-plus me-1"></i>Novo Usuário
+            </button>
+        </div>
+    </div>
+
+    <div id="usersContent">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando usuários...</p>
+        </div>
+    </div>
+    
+    <div id="usersData" style="display: none;">
+        <!-- Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <h3 id="totalUsuarios">0</h3>
+                        <p class="mb-0">Total de Usuários</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <h3 id="usuariosAtivos">0</h3>
+                        <p class="mb-0">Usuários Ativos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body text-center">
+                        <h3 id="admins">0</h3>
+                        <p class="mb-0">Administradores</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <h3 id="moderadores">0</h3>
+                        <p class="mb-0">Moderadores</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de usuários -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Lista de Usuários
+                    <span class="badge bg-secondary ms-2" id="totalUsuariosList">0</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Perfil</th>
+                                <th>Status</th>
+                                <th>Cadastro</th>
+                                <th>Último Acesso</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mostrar navbar
+        document.getElementById('mainNav').style.display = 'block';
+        
+        // Verificar autenticação
+        checkAuthentication();
+        
+        // Carregar dados dos usuários
+        loadUsersData();
+        
+        async function loadUsersData() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Atualizar totais
+                    document.getElementById('totalUsuarios').textContent = data.totalUsuarios;
+                    document.getElementById('usuariosAtivos').textContent = data.usuariosAtivos;
+                    document.getElementById('totalUsuariosList').textContent = data.totalUsuarios;
+                    
+                    // Preencher tabela
+                    const tbody = document.getElementById('usersTable');
+                    tbody.innerHTML = '';
+                    
+                    data.usuarios.forEach(usuario => {
+                        const statusClass = usuario.ativo ? 'success' : 'danger';
+                        const statusText = usuario.ativo ? 'Ativo' : 'Inativo';
+                        const perfilClass = usuario.perfil === 'Administrador' ? 'danger' : 
+                                           usuario.perfil === 'Moderador' ? 'warning' : 'primary';
+                        
+                        const row = `
+                            <tr>
+                                <td>${usuario.id}</td>
+                                <td><strong>${usuario.nome}</strong></td>
+                                <td>${usuario.email}</td>
+                                <td><span class="badge bg-${perfilClass}">${usuario.perfil}</span></td>
+                                <td><span class="badge bg-${statusClass}">${statusText}</span></td>
+                                <td><small>${usuario.dataCadastro}</small></td>
+                                <td><small>${usuario.ultimoAcesso}</small></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewUser(${usuario.id})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    // Mostrar dados
+                    document.getElementById('usersContent').style.display = 'none';
+                    document.getElementById('usersData').style.display = 'block';
+                } else {
+                    throw new Error('Erro ao carregar usuários');
+                }
+            } catch (error) {
+                document.getElementById('usersContent').innerHTML = 
+                    '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Erro ao carregar usuários</div>';
+            }
+        }
+        
+        function viewUser(id) {
+            alert('Visualizar usuário ID: ' + id);
+        }
+    </script>
+} 
