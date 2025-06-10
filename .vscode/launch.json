@@ -1,0 +1,74 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "JwtAuthApp .NET Core",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-jwtauthapp",
+      "program": "${workspaceFolder}/JwtAuthApp/bin/Debug/net9.0/JwtAuthApp.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/JwtAuthApp",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5000;https://localhost:5001"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "JwtAuthApp .NET Core (HTTPS Only)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-jwtauthapp",
+      "program": "${workspaceFolder}/JwtAuthApp/bin/Debug/net9.0/JwtAuthApp.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/JwtAuthApp",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:5001"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "JwtAuthApp .NET Core (netcoredbg)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-jwtauthapp",
+      "program": "${workspaceFolder}/JwtAuthApp/bin/Debug/net9.0/JwtAuthApp.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/JwtAuthApp",
+      "stopAtEntry": false,
+      "justMyCode": false,
+      "logging": {
+        "moduleLoad": false
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5000;https://localhost:5001"
+      },
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart",
+      "pipeTransport": {
+        "pipeProgram": "cmd",
+        "pipeArgs": ["/c"],
+        "debuggerPath": "C:\\tools\\netcoredbg\\netcoredbg.exe"
+      }
+    }
+  ]
+}

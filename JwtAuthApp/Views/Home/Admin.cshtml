@@ -1,0 +1,527 @@
+@{
+    ViewData["Title"] = "Painel de Administração";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-cogs me-2"></i>Painel de Administração</h2>
+            <p class="text-muted mb-0">Ferramentas avançadas de administração e relatórios</p>
+        </div>
+        <div>
+            <span class="badge bg-info fs-6" id="userRoleBadge">Carregando...</span>
+        </div>
+    </div>
+
+    <!-- Avisos de Permissão -->
+    <div id="accessDeniedAlert" class="alert alert-warning d-none">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Acesso Restrito:</strong> Você não tem permissão para acessar algumas funcionalidades desta página.
+    </div>
+
+    <div id="adminContent">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Verificando permissões e carregando dados...</p>
+        </div>
+    </div>
+
+    <div id="adminData" style="display: none;">
+        <!-- Seção: Apenas Admin (AdminOnly) -->
+        <div id="adminOnlySection" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Área Restrita - Apenas Administradores
+                                <span class="badge bg-light text-danger ms-2">AdminOnly</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-server me-2"></i>Configurações do Sistema</h6>
+                                    <div id="systemConfig" class="mb-3">
+                                        <p class="text-muted small">Clique no botão para carregar configurações...</p>
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" onclick="loadSystemConfig()">
+                                        <i class="fas fa-download me-1"></i>Carregar Configurações
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="updateSystemConfig()">
+                                        <i class="fas fa-save me-1"></i>Atualizar Configurações
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-file-alt me-2"></i>Logs do Sistema</h6>
+                                    <div id="systemLogs" class="mb-3">
+                                        <p class="text-muted small">Clique no botão para carregar logs...</p>
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" onclick="loadSystemLogs()">
+                                        <i class="fas fa-list me-1"></i>Ver Logs
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="clearCache()">
+                                        <i class="fas fa-trash me-1"></i>Limpar Cache
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Admin e Moderator (ModeratorOrAbove) -->
+        <div id="moderatorOrAboveSection" style="display: none;">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Relatórios Avançados - Moderadores e
+                                Administradores
+                                <span class="badge bg-dark ms-2">ModeratorOrAbove</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-chart-bar me-2"></i>Relatórios Gerenciais</h6>
+                                    <div id="reportsData" class="mb-3">
+                                        <p class="text-muted small">Clique no botão para gerar relatórios...</p>
+                                    </div>
+                                    <button class="btn btn-warning btn-sm" onclick="loadReports()">
+                                        <i class="fas fa-file-contract me-1"></i>Gerar Relatórios
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-chart-pie me-2"></i>Analytics Avançado</h6>
+                                    <div id="analyticsData" class="mb-3">
+                                        <p class="text-muted small">Clique no botão para ver analytics...</p>
+                                    </div>
+                                    <button class="btn btn-warning btn-sm" onclick="loadAnalytics()">
+                                        <i class="fas fa-chart-pie me-1"></i>Ver Analytics
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Demonstração de Acesso Negado -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-vial me-2"></i>Teste de Políticas de Autorização
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Use os botões abaixo para testar como as políticas funcionam com diferentes níveis de
+                            usuário:</p>
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6 class="text-danger">Política: AdminOnly</h6>
+                                <p class="small text-muted">Teste todos os métodos HTTP - Apenas administradores</p>
+                                <button class="btn btn-outline-success btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods', 'GET', 'AdminOnly')">
+                                    GET /test-methods
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods', 'POST', 'AdminOnly')">
+                                    POST /test-methods
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods', 'PUT', 'AdminOnly')">
+                                    PUT /test-methods
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods', 'DELETE', 'AdminOnly')">
+                                    DELETE /test-methods
+                                </button>
+                                <hr class="my-2">
+                                <button class="btn btn-outline-secondary btn-sm mb-1 w-100"
+                                    onclick="testAdminOnly('clear-cache')">
+                                    🗑️ Teste Original: Clear Cache
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-warning">Política: ModeratorOrAbove</h6>
+                                <p class="small text-muted">Teste todos os métodos HTTP - Moderadores e administradores
+                                </p>
+                                <button class="btn btn-outline-success btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods-mod', 'GET', 'ModeratorOrAbove')">
+                                    GET /test-methods-mod
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods-mod', 'POST', 'ModeratorOrAbove')">
+                                    POST /test-methods-mod
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods-mod', 'PUT', 'ModeratorOrAbove')">
+                                    PUT /test-methods-mod
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm mb-1 w-100"
+                                    onclick="testHttpMethod('test-methods-mod', 'DELETE', 'ModeratorOrAbove')">
+                                    DELETE /test-methods-mod
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-info">Resultado dos Testes</h6>
+                                <div id="testResults" class="border rounded p-2 bg-light"
+                                    style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                                    <p class="text-muted mb-0 small">Os resultados dos testes aparecerão aqui...</p>
+                                </div>
+                                <button class="btn btn-outline-info btn-sm mt-2 w-100" onclick="clearTestResults()">
+                                    🧹 Limpar Resultados
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mostrar navbar
+        document.getElementById('mainNav').style.display = 'block';
+
+        // Verificar autenticação
+        checkAuthentication();
+
+        // Verificar permissões e carregar dados
+        checkAdminPermissions();
+
+        function checkAdminPermissions() {
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            const userRole = userData.role;
+
+            // Atualizar badge do usuário
+            document.getElementById('userRoleBadge').textContent = `Nível: ${userRole}`;
+            document.getElementById('userRoleBadge').className = `badge fs-6 ${userRole === 'Admin' ? 'bg-danger' : userRole === 'Moderator' ? 'bg-warning' : 'bg-secondary'}`;
+
+            // Verificar permissões
+            if (userRole === 'Admin') {
+                // Admin vê tudo
+                document.getElementById('adminOnlySection').style.display = 'block';
+                document.getElementById('moderatorOrAboveSection').style.display = 'block';
+            } else if (userRole === 'Moderator') {
+                // Moderator vê apenas seção ModeratorOrAbove
+                document.getElementById('moderatorOrAboveSection').style.display = 'block';
+                document.getElementById('accessDeniedAlert').classList.remove('d-none');
+            } else {
+                // User comum não vê nada especial
+                document.getElementById('accessDeniedAlert').classList.remove('d-none');
+                document.getElementById('accessDeniedAlert').innerHTML =
+                    '<i class="fas fa-ban me-2"></i><strong>Acesso Negado:</strong> Você não tem permissão para acessar as funcionalidades administrativas.';
+                document.getElementById('accessDeniedAlert').className = 'alert alert-danger';
+            }
+
+            // Mostrar dados
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('adminData').style.display = 'block';
+        }
+
+        // Funções para carregar dados AdminOnly
+        async function loadSystemConfig() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/system-config', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('systemConfig').innerHTML = `
+                                                                                                                                                                                        <div class="small">
+                                                                                                                                                                                            <strong>Servidor:</strong> ${data.configs.serverName}<br>
+                                                                                                                                                                                            <strong>Versão:</strong> ${data.configs.version}<br>
+                                                                                                                                                                                            <strong>Ambiente:</strong> ${data.configs.environment}<br>
+                                                                                                                                                                                            <strong>Máx. Usuários:</strong> ${data.configs.maxUsers}
+                                                                                                                                                                                        </div>`;
+                } else if (response.status === 403) {
+                    document.getElementById('systemConfig').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
+                }
+            } catch (error) {
+                document.getElementById('systemConfig').innerHTML = '<div class="text-danger small">❌ Erro: ' + error.message + '</div>';
+            }
+        }
+
+        async function loadSystemLogs() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/system-logs', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('systemLogs').innerHTML = `
+                                                                                                                                                                                        <div class="small">
+                                                                                                                                                                                            <strong>Total de Entradas:</strong> ${data.totalEntries}<br>
+                                                                                                                                                                                            <strong>Erros Críticos:</strong> ${data.criticalErrors}<br>
+                                                                                                                                                                                            <strong>Avisos:</strong> ${data.warnings}<br>
+                                                                                                                                                                                            <strong>Últimas entradas:</strong> ${data.logs.length}
+                                                                                                                                                                                        </div>`;
+                } else if (response.status === 403) {
+                    document.getElementById('systemLogs').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
+                }
+            } catch (error) {
+                document.getElementById('systemLogs').innerHTML = '<div class="text-danger small">❌ Erro: ' + error.message + '</div>';
+            }
+        }
+
+        async function updateSystemConfig() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/system-config', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ updated: true })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('✅ ' + data.message);
+                } else if (response.status === 403) {
+                    alert('❌ Acesso negado! Apenas administradores podem atualizar configurações.');
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error.message);
+            }
+        }
+
+        async function clearCache() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/clear-cache', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('✅ ' + data.message);
+                } else if (response.status === 403) {
+                    alert('❌ Acesso negado! Apenas administradores podem limpar o cache.');
+                } else {
+                    alert(`❌ Erro: Status ${response.status}`);
+                }
+            } catch (error) {
+                alert('❌ Erro: ' + error.message);
+            }
+        }
+
+        // Função de teste temporária usando GET
+        async function testClearCacheWithGet() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/clear-cache-test', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('✅ Teste GET funcionou: ' + data.message);
+                } else if (response.status === 403) {
+                    alert('❌ Teste GET também falhou com 403');
+                } else {
+                    alert('❌ Teste GET falhou com status: ' + response.status);
+                }
+            } catch (error) {
+                alert('❌ Erro no teste GET: ' + error.message);
+            }
+        }
+
+        // Funções para carregar dados ModeratorOrAbove
+        async function loadReports() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/reports', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('reportsData').innerHTML = `
+                                                                                                                                                                                        <div class="small">
+                                                                                                                                                                                            <strong>Usuários Ativos:</strong> ${data.reports.userActivity.activeUsers}<br>
+                                                                                                                                                                                            <strong>Total de Logins:</strong> ${data.reports.userActivity.totalLogins}<br>
+                                                                                                                                                                                            <strong>Produtos:</strong> ${data.reports.productStats.totalProducts}<br>
+                                                                                                                                                                                            <strong>Uptime:</strong> ${data.reports.systemPerformance.uptime}
+                                                                                                                                                                                        </div>`;
+                } else if (response.status === 403) {
+                    document.getElementById('reportsData').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
+                }
+            } catch (error) {
+                document.getElementById('reportsData').innerHTML = '<div class="text-danger small">❌ Erro: ' + error.message + '</div>';
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const response = await fetch('/api/admin/analytics', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('analyticsData').innerHTML = `
+                                                                                                                                                                                        <div class="small">
+                                                                                                                                                                                            <strong>Taxa de Conversão:</strong> ${data.analytics.conversionRate}%<br>
+                                                                                                                                                                                            <strong>Feature Mais Popular:</strong> ${data.analytics.popularFeatures[0].feature}<br>
+                                                                                                                                                                                            <strong>Distribuição:</strong> Brasil ${data.analytics.geographicDistribution.brazil}%<br>
+                                                                                                                                                                                            <strong>Insights:</strong> ${data.insights.length} disponíveis
+                                                                                                                                                                                        </div>`;
+                } else if (response.status === 403) {
+                    document.getElementById('analyticsData').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
+                }
+            } catch (error) {
+                document.getElementById('analyticsData').innerHTML = '<div class="text-danger small">❌ Erro: ' + error.message + '</div>';
+            }
+        }
+
+        // Função principal para testar todos os métodos HTTP
+        async function testHttpMethod(endpoint, method, policy) {
+            const token = localStorage.getItem('jwt_token');
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+
+            try {
+                const fetchOptions = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                };
+
+                // Adicionar Content-Type e body para POST/PUT
+                if (method === 'POST' || method === 'PUT') {
+                    fetchOptions.headers['Content-Type'] = 'application/json';
+                    fetchOptions.body = JSON.stringify({
+                        test: true,
+                        method: method,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+                const response = await fetch(`/api/admin/${endpoint}`, fetchOptions);
+
+                let responseData = null;
+                try {
+                    responseData = await response.json();
+                } catch (e) {
+                    responseData = { message: 'Resposta não é JSON válido' };
+                }
+
+                const resultHtml = `
+                                <div class="border-bottom pb-2 mb-2">
+                                    <div class="small">
+                                        <strong>${method} /${endpoint}</strong> (${policy})<br>
+                                        <strong>Usuário:</strong> ${userData.role}<br>
+                                        <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
+                                        <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
+                                        ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> ${responseData.error || 'Acesso negado'}`}<br>
+                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                    </div>
+                                </div>
+                            `;
+
+                appendTestResults(resultHtml);
+            } catch (error) {
+                const errorHtml = `
+                                <div class="border-bottom pb-2 mb-2">
+                                    <div class="text-danger small">
+                                        <strong>${method} /${endpoint}</strong> (${policy})<br>
+                                        <strong>❌ Erro:</strong> ${error.message}<br>
+                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                    </div>
+                                </div>
+                            `;
+                appendTestResults(errorHtml);
+            }
+        }
+
+        // Função para testar o endpoint original de clear-cache
+        async function testAdminOnly(endpoint) {
+            const token = localStorage.getItem('jwt_token');
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+
+            try {
+                const fetchOptions = {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                };
+
+                // Usar DELETE apenas para clear-cache
+                if (endpoint === 'clear-cache') {
+                    fetchOptions.method = 'DELETE';
+                }
+
+                const response = await fetch(`/api/admin/${endpoint}`, fetchOptions);
+
+                let responseData = null;
+                try {
+                    responseData = await response.json();
+                } catch (e) {
+                    responseData = { message: 'Resposta não é JSON válido' };
+                }
+
+                const resultHtml = `
+                                <div class="border-bottom pb-2 mb-2">
+                                    <div class="small">
+                                        <strong>DELETE /${endpoint}</strong> (Original)<br>
+                                        <strong>Usuário:</strong> ${userData.role}<br>
+                                        <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
+                                        <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
+                                        ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> Acesso negado`}<br>
+                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                    </div>
+                                </div>
+                            `;
+                appendTestResults(resultHtml);
+            } catch (error) {
+                const errorHtml = `
+                                <div class="border-bottom pb-2 mb-2">
+                                    <div class="text-danger small">
+                                        <strong>DELETE /${endpoint}</strong> (Original)<br>
+                                        <strong>❌ Erro:</strong> ${error.message}<br>
+                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                    </div>
+                                </div>
+                            `;
+                appendTestResults(errorHtml);
+            }
+        }
+
+        function appendTestResults(html) {
+            const resultsDiv = document.getElementById('testResults');
+            if (resultsDiv.innerHTML.includes('Os resultados dos testes aparecerão aqui')) {
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+            }
+            resultsDiv.scrollTop = 0; // Scroll para o topo para ver o resultado mais recente
+        }
+
+        function clearTestResults() {
+            document.getElementById('testResults').innerHTML = '<p class="text-muted mb-0 small">Os resultados dos testes aparecerão aqui...</p>';
+        }
+    </script>
+}

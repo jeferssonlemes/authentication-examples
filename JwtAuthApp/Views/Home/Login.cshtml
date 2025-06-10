@@ -12,7 +12,7 @@
                         <h3 class="card-title">Sistema de Autenticação</h3>
                         <p class="text-muted">Faça login para acessar o sistema</p>
                     </div>
-                    
+
                     <div id="loginAlert" class="alert alert-danger d-none" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         <span id="loginError"></span>
@@ -52,18 +52,18 @@
 
 @section Scripts {
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const loginBtn = document.getElementById('loginBtn');
             const loginAlert = document.getElementById('loginAlert');
-            
+
             // Desabilitar botão
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Entrando...';
-            
+
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -72,20 +72,25 @@
                     },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
+                    // Decodificar o token para extrair o role
+                    const payload = JSON.parse(atob(data.token.split('.')[1]));
+                    const userRole = payload.role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
                     // Salvar token no localStorage e cookie
                     localStorage.setItem('jwt_token', data.token);
                     localStorage.setItem('user_data', JSON.stringify({
                         username: data.username,
-                        email: data.email
+                        email: data.email,
+                        role: userRole
                     }));
-                    
+
                     // Criar cookie
                     document.cookie = `jwt_token=${data.token}; path=/; max-age=3600`;
-                    
+
                     // Redirecionar para dashboard
                     window.location.href = '/Home/Dashboard';
                 } else {
@@ -97,13 +102,13 @@
                 document.getElementById('loginError').textContent = 'Erro de conexão';
                 loginAlert.classList.remove('d-none');
             }
-            
+
             // Reabilitar botão
             loginBtn.disabled = false;
             loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-1"></i>Entrar';
         });
-        
+
         // Ocultar navbar na tela de login
         document.getElementById('mainNav').style.display = 'none';
     </script>
-} 
+}

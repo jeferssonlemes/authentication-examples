@@ -35,6 +35,11 @@ namespace JwtAuthApp.Controllers
             return View();
         }
 
+        public IActionResult Admin()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult Logout()
         {

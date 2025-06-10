@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Erro";
+    var statusCode = Context.Response.StatusCode;
+    var errorTitle = statusCode switch
+    {
+        400 => "Requisição Inválida",
+        401 => "Não Autorizado",
+        403 => "Acesso Negado",
+        404 => "Página Não Encontrada",
+        500 => "Erro Interno do Servidor",
+        502 => "Gateway Inválido",
+        503 => "Serviço Indisponível",
+        _ => "Erro"
+    };
+    var errorMessage = statusCode switch
+    {
+        400 => "A requisição enviada não é válida.",
+        401 => "Você precisa estar autenticado para acessar este recurso.",
+        403 => "Você não tem permissão para acessar este recurso.",
+        404 => "A página que você está procurando não existe ou foi movida.",
+        500 => "Ocorreu um erro interno no servidor.",
+        502 => "O servidor recebeu uma resposta inválida.",
+        503 => "O serviço está temporariamente indisponível.",
+        _ => "Ocorreu um erro inesperado."
+    };
+    var iconClass = statusCode switch
+    {
+        401 => "fas fa-lock",
+        403 => "fas fa-ban",
+        404 => "fas fa-exclamation-triangle",
+        500 => "fas fa-server",
+        _ => "fas fa-exclamation-circle"
+    };
+    var iconColor = statusCode switch
+    {
+        401 => "text-info",
+        403 => "text-danger",
+        404 => "text-warning",
+        500 => "text-danger",
+        _ => "text-secondary"
+    };
+}
+
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="row w-100">
+        <div class="col-md-6 mx-auto text-center">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="@iconClass fa-5x @iconColor mb-3"></i>
+                        <h1 class="display-4 text-primary">@statusCode</h1>
+                        <h3 class="card-title">@errorTitle</h3>
+                        <p class="text-muted">@errorMessage</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <a href="/Home/Dashboard" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-1"></i>Voltar ao Dashboard
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Se você acredita que isso é um erro, entre em contato com o suporte.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Ocultar navbar na tela de erro
+        const navbar = document.getElementById('mainNav');
+        if (navbar) {
+            navbar.style.display = 'none';
+        }
+    </script>
+}

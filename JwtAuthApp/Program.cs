@@ -42,13 +42,13 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+// Configurar tratamento de status codes usando middleware nativo do ASP.NET Core
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseCors("AllowAll");
 
-// Middleware de tratamento de status codes
-app.UseStatusCodeHandling();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -15,13 +15,13 @@ namespace JwtAuthApp.Services
         public AuthService(IConfiguration configuration)
         {
             _configuration = configuration;
-            
+
             // Dados mocados de usuários com 3 níveis diferentes
             _users = new List<User>
             {
                 new User { Id = 1, Username = "admin", Password = "admin123", Email = "admin@teste.com", Role = "Admin" },
-                new User { Id = 2, Username = "moderator", Password = "mod123", Email = "moderator@teste.com", Role = "Moderator" },
-                new User { Id = 3, Username = "user", Password = "user123", Email = "user@teste.com", Role = "User" }
+                new User { Id = 2, Username = "user1", Password = "user123", Email = "user1@teste.com", Role = "Moderator" },
+                new User { Id = 3, Username = "user2", Password = "user456", Email = "user2@teste.com", Role = "User" }
             };
 
             // Permissões específicas por usuário/role
@@ -59,7 +59,7 @@ namespace JwtAuthApp.Services
         public LoginResponse? Login(LoginRequest request)
         {
             var user = _users.FirstOrDefault(u => u.Username == request.Username && u.Password == request.Password);
-            
+
             if (user == null)
                 return null;
 
@@ -78,11 +78,14 @@ namespace JwtAuthApp.Services
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"] ?? "MinhaChaveSecretaSuperSegura123456789");
-            
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? "MinhaChaveSecretaSuperSegura123456789");
+            var issuer = jwtSettings["Issuer"] ?? "JwtAuthApp";
+            var audience = jwtSettings["Audience"] ?? "JwtAuthApp-Users";
+            var expirationHours = int.Parse(jwtSettings["ExpirationHours"] ?? "1");
+
             // Obter permissões do usuário
             var userPermissions = _userPermissions.GetValueOrDefault(user.Role, new List<string>());
-            
+
             // Criar claims básicas
             var claims = new List<Claim>
             {
@@ -98,11 +101,13 @@ namespace JwtAuthApp.Services
             {
                 claims.Add(new Claim("permission", permission));
             }
-            
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Subject = new ClaimsIdentity(claims, "jwt"),
+                Expires = DateTime.UtcNow.AddHours(expirationHours),
+                Issuer = issuer,
+                Audience = audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -111,4 +116,4 @@ namespace JwtAuthApp.Services
             return tokenHandler.WriteToken(token);
         }
     }
-} 
+}

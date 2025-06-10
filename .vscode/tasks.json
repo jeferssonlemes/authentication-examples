@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-jwtauthapp",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build"],
+      "options": {
+        "cwd": "${workspaceFolder}/JwtAuthApp"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "publish-jwtauthapp",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/JwtAuthApp"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "watch-jwtauthapp",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["watch", "run"],
+      "options": {
+        "cwd": "${workspaceFolder}/JwtAuthApp"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "clean-jwtauthapp",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/JwtAuthApp"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "restore-jwtauthapp",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["restore"],
+      "options": {
+        "cwd": "${workspaceFolder}/JwtAuthApp"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    }
+  ]
+}

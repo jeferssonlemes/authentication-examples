@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using JwtAuthApp.Requirements;
 using JwtAuthApp.Handlers;
+using System.Security.Claims;
 
 namespace JwtAuthApp.Extensions
 {
@@ -27,12 +28,12 @@ namespace JwtAuthApp.Extensions
                 opts.AddPolicy("ManageUsers", p => p.Requirements.Add(new PermissionRequirement("ManageUsers")));
 
                 // Políticas gerais
-                opts.AddPolicy("AdminOnly", p => p.RequireClaim("role", "Admin"));
-                opts.AddPolicy("ModeratorOrAbove", p => p.RequireClaim("role", "Admin", "Moderator"));
+                opts.AddPolicy("AdminOnly", p => p.RequireClaim(ClaimTypes.Role, "Admin"));
+                opts.AddPolicy("ModeratorOrAbove", p => p.RequireClaim(ClaimTypes.Role, "Admin", "Moderator"));
             });
 
             services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
             return services;
         }
     }
-} 
+}
