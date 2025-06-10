@@ -5,10 +5,10 @@ namespace JwtAuthApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class ProductsController : ControllerBase
     {
         [HttpGet]
+        [Authorize(Policy = "ViewProducts")]
         public IActionResult GetProducts()
         {
             var produtos = new[]
@@ -69,6 +69,7 @@ namespace JwtAuthApp.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "ViewProducts")]
         public IActionResult GetProduct(int id)
         {
             var produto = new
@@ -90,6 +91,7 @@ namespace JwtAuthApp.Controllers
         }
 
         [HttpGet("categories")]
+        [Authorize(Policy = "ViewProducts")]
         public IActionResult GetCategories()
         {
             var categorias = new[]
@@ -102,6 +104,48 @@ namespace JwtAuthApp.Controllers
             };
 
             return Ok(categorias);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditProducts")]
+        public IActionResult CreateProduct([FromBody] object productData)
+        {
+            // Simular criação de produto - apenas Moderators e Admins
+            return Ok(new { message = "Produto criado com sucesso!", id = new Random().Next(100, 999) });
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "EditProducts")]
+        public IActionResult UpdateProduct(int id, [FromBody] object productData)
+        {
+            // Simular atualização de produto - apenas Moderators e Admins
+            return Ok(new { message = $"Produto {id} atualizado com sucesso!" });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "DeleteProducts")]
+        public IActionResult DeleteProduct(int id)
+        {
+            // Simular exclusão de produto - apenas Admins
+            return Ok(new { message = $"Produto {id} excluído com sucesso!" });
+        }
+
+        [HttpGet("admin/stats")]
+        [Authorize(Policy = "ManageProducts")]
+        public IActionResult GetAdminStats()
+        {
+            // Estatísticas administrativas - apenas Admins
+            return Ok(new
+            {
+                totalProducts = 156,
+                lowStockProducts = 12,
+                recentlyAdded = 8,
+                topCategories = new[]
+                {
+                    new { category = "Informática", sales = 45000 },
+                    new { category = "Telefonia", sales = 32000 }
+                }
+            });
         }
     }
 } 

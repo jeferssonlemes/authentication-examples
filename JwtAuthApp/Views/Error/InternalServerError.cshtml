@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Erro interno";
+}
+
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="row w-100">
+        <div class="col-md-6 mx-auto text-center">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle fa-5x text-danger mb-3"></i>
+                        <h1 class="display-4 text-danger">500</h1>
+                        <h3 class="card-title">Erro interno do servidor</h3>
+                        <p class="text-muted">Ops! Algo deu errado em nossos servidores.</p>
+                    </div>
+                    
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Erro inesperado:</strong> Nossos engenheiros foram notificados e estão trabalhando para resolver o problema.
+                    </div>
+                    
+                    <div class="mb-4">
+                        <button onclick="window.location.reload()" class="btn btn-primary me-2">
+                            <i class="fas fa-redo me-1"></i>Tentar Novamente
+                        </button>
+                        <a href="/Home/Dashboard" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Se o problema persistir, entre em contato com o suporte técnico.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mostrar navbar se usuário estiver logado
+        const token = localStorage.getItem('jwt_token');
+        if (token) {
+            document.getElementById('mainNav').style.display = 'block';
+            checkAuthentication();
+        } else {
+            document.getElementById('mainNav').style.display = 'none';
+        }
+    </script>
+} 

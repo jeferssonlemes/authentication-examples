@@ -5,7 +5,7 @@ namespace JwtAuthApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "ViewDashboard")]
     public class DashboardController : ControllerBase
     {
         [HttpGet]

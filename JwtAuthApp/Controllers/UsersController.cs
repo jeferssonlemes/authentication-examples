@@ -5,10 +5,10 @@ namespace JwtAuthApp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class UsersController : ControllerBase
     {
         [HttpGet]
+        [Authorize(Policy = "ViewUsers")]
         public IActionResult GetUsers()
         {
             var usuarios = new[]
@@ -75,6 +75,7 @@ namespace JwtAuthApp.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "ViewUsers")]
         public IActionResult GetUser(int id)
         {
             var usuario = new
@@ -102,6 +103,7 @@ namespace JwtAuthApp.Controllers
         }
 
         [HttpGet("stats")]
+        [Authorize(Policy = "ViewUsers")]
         public IActionResult GetUserStats()
         {
             return Ok(new
@@ -118,6 +120,47 @@ namespace JwtAuthApp.Controllers
                         moderadores = 12,
                         usuarios = 139
                     }
+                }
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "EditUsers")]
+        public IActionResult CreateUser([FromBody] object userData)
+        {
+            // Simular criação de usuário - apenas Admins
+            return Ok(new { message = "Usuário criado com sucesso!", id = new Random().Next(100, 999) });
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "EditUsers")]
+        public IActionResult UpdateUser(int id, [FromBody] object userData)
+        {
+            // Simular atualização de usuário - apenas Admins
+            return Ok(new { message = $"Usuário {id} atualizado com sucesso!" });
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "DeleteUsers")]
+        public IActionResult DeleteUser(int id)
+        {
+            // Simular exclusão de usuário - apenas Admins
+            return Ok(new { message = $"Usuário {id} excluído com sucesso!" });
+        }
+
+        [HttpGet("admin/permissions")]
+        [Authorize(Policy = "ManageUsers")]
+        public IActionResult GetUserPermissions()
+        {
+            // Gerenciar permissões - apenas Admins
+            return Ok(new
+            {
+                availableRoles = new[] { "Admin", "Moderator", "User" },
+                permissions = new
+                {
+                    Admin = new[] { "ViewDashboard", "ManageDashboard", "ViewProducts", "EditProducts", "DeleteProducts", "ManageProducts", "ViewUsers", "EditUsers", "DeleteUsers", "ManageUsers" },
+                    Moderator = new[] { "ViewDashboard", "ViewProducts", "EditProducts", "ViewUsers" },
+                    User = new[] { "ViewDashboard", "ViewProducts" }
                 }
             });
         }

@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using JwtAuthApp.Services;
+using JwtAuthApp.Extensions;
+using JwtAuthApp.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,31 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 
-// Configurar autenticação JWT
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"] ?? "MinhaChaveSecretaSuperSegura123456789");
+// Configurar autenticação JWT usando extensão
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
-builder.Services.AddAuthentication(x =>
-{
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(x =>
-{
-    x.RequireHttpsMetadata = false;
-    x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
-
-builder.Services.AddAuthorization();
+// Configurar autorização com políticas usando extensão
+builder.Services.AddPermissionPolicies();
 
 // Registrar serviços
 builder.Services.AddScoped<AuthService>();
@@ -58,7 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    // Usar middleware customizado de tratamento de exceções
+    app.UseGlobalExceptionHandler();
     app.UseHsts();
 }
 
@@ -66,6 +46,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseCors("AllowAll");
+
+// Middleware de tratamento de status codes
+app.UseStatusCodeHandling();
 
 app.UseAuthentication();
 app.UseAuthorization();

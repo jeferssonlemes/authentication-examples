@@ -1,0 +1,230 @@
+# Sistema de Autenticação e Autorização - POC
+
+## Visão Geral
+Este projeto implementa um sistema completo de autenticação JWT com autorização baseada em permissões, seguindo as melhores práticas de segurança para aplicações .NET Core 8.0.
+
+## Arquitetura Implementada
+
+### 1. Estrutura de Pastas
+```
+JwtAuthApp/
+├── Controllers/          # Controllers da API e MVC
+├── Models/              # Modelos de dados
+├── Services/            # Serviços de negócio
+├── Extensions/          # Extensões para configuração
+├── Requirements/        # Requirements de autorização
+├── Handlers/           # Handlers de autorização
+├── Middlewares/        # Middlewares customizados
+├── Settings/           # Configurações
+└── Views/              # Views MVC
+```
+
+### 2. Camadas de Segurança
+
+#### Autenticação JWT
+- **Localização**: `Extensions/AuthenticationExtensions.cs`
+- **Configuração**: JWT Bearer com validação completa
+- **Tokens**: Expiração de 1 hora, claims customizadas
+- **Tratamento de Erros**: Redirecionamento automático para páginas de erro
+
+#### Autorização por Permissões
+- **Localização**: `Extensions/AuthorizationExtensions.cs`
+- **Sistema**: Policy-based authorization
+- **Requirements**: `Requirements/PermissionRequirement.cs`
+- **Handlers**: `Handlers/PermissionHandler.cs`
+
+#### Middlewares de Segurança
+- **Exception Handling**: `Middlewares/ExceptionHandlingMiddleware.cs`
+- **Status Code Handling**: `Middlewares/StatusCodeHandlingMiddleware.cs`
+
+## Usuários de Teste (3 Níveis de Permissão)
+
+### 1. Administrador (Admin)
+- **Credenciais**: `admin` / `admin123`
+- **Permissões**:
+  - Dashboard: ViewDashboard, ManageDashboard
+  - Produtos: ViewProducts, EditProducts, DeleteProducts, ManageProducts
+  - Usuários: ViewUsers, EditUsers, DeleteUsers, ManageUsers
+- **Acesso**: Todas as funcionalidades do sistema
+
+### 2. Moderador (Moderator)
+- **Credenciais**: `moderator` / `mod123`
+- **Permissões**:
+  - Dashboard: ViewDashboard
+  - Produtos: ViewProducts, EditProducts
+  - Usuários: ViewUsers
+- **Acesso**: Pode ver e editar produtos, visualizar usuários
+
+### 3. Usuário Comum (User)
+- **Credenciais**: `user` / `user123`
+- **Permissões**:
+  - Dashboard: ViewDashboard
+  - Produtos: ViewProducts
+- **Acesso**: Apenas visualização de dashboard e produtos
+
+## Políticas de Autorização Implementadas
+
+### Dashboard
+- `ViewDashboard`: Visualizar dashboard (Todos)
+- `ManageDashboard`: Gerenciar dashboard (Admin)
+
+### Produtos
+- `ViewProducts`: Visualizar produtos (Todos)
+- `EditProducts`: Editar produtos (Moderator, Admin)
+- `DeleteProducts`: Excluir produtos (Admin)
+- `ManageProducts`: Gerenciar produtos (Admin)
+
+### Usuários
+- `ViewUsers`: Visualizar usuários (Moderator, Admin)
+- `EditUsers`: Editar usuários (Admin)
+- `DeleteUsers`: Excluir usuários (Admin)
+- `ManageUsers`: Gerenciar usuários (Admin)
+
+## Endpoints da API
+
+### Autenticação
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/profile` - Perfil do usuário
+
+### Dashboard
+- `GET /api/dashboard/stats` - Estatísticas (ViewDashboard)
+- `GET /api/dashboard/charts` - Dados de gráficos (ViewDashboard)
+
+### Produtos
+- `GET /api/products` - Listar produtos (ViewProducts)
+- `GET /api/products/{id}` - Obter produto (ViewProducts)
+- `GET /api/products/categories` - Categorias (ViewProducts)
+- `POST /api/products` - Criar produto (EditProducts)
+- `PUT /api/products/{id}` - Atualizar produto (EditProducts)
+- `DELETE /api/products/{id}` - Excluir produto (DeleteProducts)
+- `GET /api/products/admin/stats` - Estatísticas admin (ManageProducts)
+
+### Usuários
+- `GET /api/users` - Listar usuários (ViewUsers)
+- `GET /api/users/{id}` - Obter usuário (ViewUsers)
+- `GET /api/users/stats` - Estatísticas (ViewUsers)
+- `POST /api/users` - Criar usuário (EditUsers)
+- `PUT /api/users/{id}` - Atualizar usuário (EditUsers)
+- `DELETE /api/users/{id}` - Excluir usuário (DeleteUsers)
+- `GET /api/users/admin/permissions` - Gerenciar permissões (ManageUsers)
+
+## Páginas de Erro Implementadas
+
+### 401 - Unauthorized
+- **Rota**: `/Error/Unauthorized`
+- **Uso**: Token expirado ou inválido
+- **Ação**: Redireciona para login
+
+### 403 - Forbidden
+- **Rota**: `/Error/Forbidden`
+- **Uso**: Permissão insuficiente
+- **Ação**: Mostra mensagem de acesso negado
+
+### 404 - Not Found
+- **Rota**: `/Error/NotFound`
+- **Uso**: Página não encontrada
+- **Ação**: Opções de navegação
+
+### 500 - Internal Server Error
+- **Rota**: `/Error/InternalServerError`
+- **Uso**: Erro interno do servidor
+- **Ação**: Opção de tentar novamente
+
+## Interface Responsiva
+
+### Controle de Visibilidade
+- Botões e funcionalidades aparecem/desaparecem baseado nas permissões
+- Verificação em tempo real das permissões do usuário
+- Feedback visual para ações não permitidas
+
+### Funcionalidades por Nível
+- **Admin**: Vê todos os botões e funcionalidades
+- **Moderator**: Vê botões de edição, mas não de exclusão
+- **User**: Vê apenas funcionalidades de visualização
+
+## Configuração
+
+### appsettings.json
+```json
+{
+  "JwtSettings": {
+    "Secret": "MinhaChaveSecretaSuperSegura123456789",
+    "Issuer": "JwtAuthApp",
+    "Audience": "JwtAuthApp-Users",
+    "ExpirationHours": 1
+  }
+}
+```
+
+### Program.cs
+```csharp
+// Autenticação JWT
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// Autorização com políticas
+builder.Services.AddPermissionPolicies();
+
+// Middlewares
+app.UseGlobalExceptionHandler();
+app.UseStatusCodeHandling();
+```
+
+## Testes de Validação
+
+### Cenários de Teste
+
+1. **Login com diferentes usuários**
+   - Verificar tokens gerados
+   - Validar claims incluídas
+
+2. **Acesso a endpoints protegidos**
+   - Testar com cada nível de usuário
+   - Verificar retorno 403 para permissões insuficientes
+
+3. **Expiração de token**
+   - Aguardar expiração (1 hora)
+   - Verificar redirecionamento para 401
+
+4. **Interface responsiva**
+   - Verificar visibilidade de botões
+   - Testar funcionalidades por nível
+
+### Comandos de Teste
+```bash
+# Executar aplicação
+dotnet run
+
+# Testar endpoints
+# Use as credenciais dos 3 usuários para validar permissões
+```
+
+## Segurança Implementada
+
+### Validações JWT
+- Assinatura digital
+- Expiração de token
+- Issuer e Audience
+- Clock skew de 30 segundos
+
+### Proteção CORS
+- Configuração para desenvolvimento
+- Headers permitidos
+
+### Tratamento de Erros
+- Logs de segurança
+- Respostas padronizadas
+- Não exposição de informações sensíveis
+
+## Próximos Passos (Sugestões)
+
+1. **Persistência**: Implementar banco de dados real
+2. **Refresh Tokens**: Sistema de renovação automática
+3. **Rate Limiting**: Proteção contra ataques
+4. **Auditoria**: Log de ações dos usuários
+5. **2FA**: Autenticação de dois fatores
+6. **HTTPS**: Certificados SSL em produção
+
+---
+
+**Nota**: Este é um projeto POC (Proof of Concept) para demonstração do sistema de autenticação e autorização. Em produção, implemente validações adicionais e use banco de dados real. 

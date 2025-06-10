@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Não autorizado";
+}
+
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="row w-100">
+        <div class="col-md-6 mx-auto text-center">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-lock fa-5x text-warning mb-3"></i>
+                        <h1 class="display-4 text-warning">401</h1>
+                        <h3 class="card-title">Sessão expirada</h3>
+                        <p class="text-muted">Sua sessão expirou ou você não está autenticado.</p>
+                    </div>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Autenticação necessária:</strong> Você precisa fazer login novamente para continuar.
+                    </div>
+                    
+                    <div class="mb-4">
+                        <a href="/Home/Login" class="btn btn-primary me-2">
+                            <i class="fas fa-sign-in-alt me-1"></i>Fazer Login
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-1"></i>Página Inicial
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Por segurança, sua sessão foi encerrada automaticamente.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Ocultar navbar e limpar dados de autenticação
+        document.getElementById('mainNav').style.display = 'none';
+        
+        // Limpar tokens expirados
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user_data');
+        document.cookie = 'jwt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    </script>
+} 
