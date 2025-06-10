@@ -1,68 +1,92 @@
 @{
     ViewData["Title"] = "Painel de Administração";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="fas fa-cogs me-2"></i>Painel de Administração</h2>
-            <p class="text-muted mb-0">Ferramentas avançadas de administração e relatórios</p>
-        </div>
-        <div>
-            <span class="badge bg-info fs-6" id="userRoleBadge">Carregando...</span>
-        </div>
-    </div>
-
-    <!-- Avisos de Permissão -->
-    <div id="accessDeniedAlert" class="alert alert-warning d-none">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Acesso Restrito:</strong> Você não tem permissão para acessar algumas funcionalidades desta página.
-    </div>
-
-    <div id="adminContent">
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Carregando...</span>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-cogs me-2"></i>Painel de Administração</h2>
+                    <p class="text-muted mb-0">Ferramentas avançadas de administração e relatórios</p>
+                </div>
+                <div class="text-end">
+                    <span id="userRoleBadge" class="badge bg-danger fs-6">Carregando...</span>
+                </div>
             </div>
-            <p class="mt-2">Verificando permissões e carregando dados...</p>
-        </div>
-    </div>
 
-    <div id="adminData" style="display: none;">
-        <!-- Seção: Apenas Admin (AdminOnly) -->
-        <div id="adminOnlySection" style="display: none;">
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card border-danger">
-                        <div class="card-header bg-danger text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-shield-alt me-2"></i>Área Restrita - Apenas Administradores
-                                <span class="badge bg-light text-danger ms-2">AdminOnly</span>
-                            </h5>
+            <!-- Alerta de permissões -->
+            <div id="accessDeniedAlert" class="alert alert-warning d-none">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Acesso Limitado:</strong> Algumas funcionalidades estão restritas ao seu nível de permissão.
+            </div>
+
+            <!-- Debug Button - Temporário -->
+            <div class="text-center mb-3">
+                <button class="btn btn-warning" onclick="forceShowSections()">
+                    🔧 DEBUG: Forçar Mostrar Todas as Seções
+                </button>
+                <button class="btn btn-info" onclick="debugInfo()">
+                    📊 DEBUG: Mostrar Info
+                </button>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="adminContent" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-3 text-muted">Verificando permissões e carregando dados...</p>
+            </div>
+
+            <!-- Conteúdo principal -->
+            <div id="adminData">
+                <!-- AdminOnly Section -->
+                <div id="adminOnlySection">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                <strong>Área Administrativa:</strong> Funcionalidades exclusivas para administradores do
+                                sistema.
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-server me-2"></i>Configurações do Sistema</h6>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0">🔧 Configurações do Sistema</h5>
+                                </div>
+                                <div class="card-body">
                                     <div id="systemConfig" class="mb-3">
-                                        <p class="text-muted small">Clique no botão para carregar configurações...</p>
+                                        <div class="text-muted small">Carregando configurações...</div>
                                     </div>
-                                    <button class="btn btn-danger btn-sm" onclick="loadSystemConfig()">
-                                        <i class="fas fa-download me-1"></i>Carregar Configurações
+                                    <button class="btn btn-primary btn-sm me-2" onclick="loadSystemConfig()">
+                                        <i class="fas fa-sync me-1"></i>Recarregar
                                     </button>
-                                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="updateSystemConfig()">
-                                        <i class="fas fa-save me-1"></i>Atualizar Configurações
+                                    <button class="btn btn-warning btn-sm" onclick="updateSystemConfig()">
+                                        <i class="fas fa-edit me-1"></i>Atualizar
                                     </button>
                                 </div>
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-file-alt me-2"></i>Logs do Sistema</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-dark text-white">
+                                    <h5 class="mb-0">📊 Logs do Sistema</h5>
+                                </div>
+                                <div class="card-body">
                                     <div id="systemLogs" class="mb-3">
-                                        <p class="text-muted small">Clique no botão para carregar logs...</p>
+                                        <div class="text-muted small">Carregando logs...</div>
                                     </div>
-                                    <button class="btn btn-danger btn-sm" onclick="loadSystemLogs()">
-                                        <i class="fas fa-list me-1"></i>Ver Logs
+                                    <button class="btn btn-info btn-sm me-2" onclick="loadSystemLogs()">
+                                        <i class="fas fa-sync me-1"></i>Recarregar
                                     </button>
-                                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="clearCache()">
+                                    <button class="btn btn-danger btn-sm" onclick="clearCache()">
                                         <i class="fas fa-trash me-1"></i>Limpar Cache
                                     </button>
                                 </div>
@@ -70,116 +94,207 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Seção: Admin e Moderator (ModeratorOrAbove) -->
-        <div id="moderatorOrAboveSection" style="display: none;">
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-line me-2"></i>Relatórios Avançados - Moderadores e
-                                Administradores
-                                <span class="badge bg-dark ms-2">ModeratorOrAbove</span>
-                            </h5>
+                <!-- ModeratorOrAbove Section -->
+                <div id="moderatorOrAboveSection">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-users-cog me-2"></i>
+                                <strong>Área de Moderação:</strong> Funcionalidades disponíveis para moderadores e
+                                administradores.
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-chart-bar me-2"></i>Relatórios Gerenciais</h6>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">📈 Relatórios</h5>
+                                </div>
+                                <div class="card-body">
                                     <div id="reportsData" class="mb-3">
-                                        <p class="text-muted small">Clique no botão para gerar relatórios...</p>
+                                        <div class="text-muted small">Carregando relatórios...</div>
                                     </div>
-                                    <button class="btn btn-warning btn-sm" onclick="loadReports()">
-                                        <i class="fas fa-file-contract me-1"></i>Gerar Relatórios
+                                    <button class="btn btn-success btn-sm" onclick="loadReports()">
+                                        <i class="fas fa-sync me-1"></i>Recarregar
                                     </button>
                                 </div>
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-chart-pie me-2"></i>Analytics Avançado</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">📊 Analytics</h5>
+                                </div>
+                                <div class="card-body">
                                     <div id="analyticsData" class="mb-3">
-                                        <p class="text-muted small">Clique no botão para ver analytics...</p>
+                                        <div class="text-muted small">Carregando analytics...</div>
                                     </div>
-                                    <button class="btn btn-warning btn-sm" onclick="loadAnalytics()">
-                                        <i class="fas fa-chart-pie me-1"></i>Ver Analytics
+                                    <button class="btn btn-info btn-sm" onclick="loadAnalytics()">
+                                        <i class="fas fa-sync me-1"></i>Recarregar
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Testes HTTP -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">🧪 Testes de Métodos HTTP e Autorização</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <h6 class="text-danger">AdminOnly Endpoints</h6>
+                                            <button class="btn btn-outline-success btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods', 'GET', 'AdminOnly')">
+                                                GET /test-methods
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods', 'POST', 'AdminOnly')">
+                                                POST /test-methods
+                                            </button>
+                                            <button class="btn btn-outline-warning btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods', 'PUT', 'AdminOnly')">
+                                                PUT /test-methods
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods', 'DELETE', 'AdminOnly')">
+                                                DELETE /test-methods
+                                            </button>
+                                            <hr>
+                                            <button class="btn btn-danger btn-sm w-100"
+                                                onclick="testAdminOnly('clear-cache')">
+                                                DELETE /clear-cache (Original)
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6 class="text-warning">ModeratorOrAbove Endpoints</h6>
+                                            <button class="btn btn-outline-success btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods-mod', 'GET', 'ModeratorOrAbove')">
+                                                GET /test-methods-mod
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods-mod', 'POST', 'ModeratorOrAbove')">
+                                                POST /test-methods-mod
+                                            </button>
+                                            <button class="btn btn-outline-warning btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods-mod', 'PUT', 'ModeratorOrAbove')">
+                                                PUT /test-methods-mod
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm mb-1 w-100"
+                                                onclick="testHttpMethod('test-methods-mod', 'DELETE', 'ModeratorOrAbove')">
+                                                DELETE /test-methods-mod
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info">Resultado dos Testes</h6>
+                                            <div id="testResults" class="border rounded p-2 bg-light"
+                                                style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                                                <p class="text-muted mb-0 small">Os resultados dos testes aparecerão
+                                                    aqui...</p>
+                                            </div>
+                                            <button class="btn btn-outline-info btn-sm mt-2 w-100"
+                                                onclick="clearTestResults()">
+                                                🧹 Limpar Resultados
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Seção: Demonstração de Acesso Negado -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-info">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-vial me-2"></i>Teste de Políticas de Autorização
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Use os botões abaixo para testar como as políticas funcionam com diferentes níveis de
-                            usuário:</p>
-                        <div class="row">
-                            <div class="col-md-5">
-                                <h6 class="text-danger">Política: AdminOnly</h6>
-                                <p class="small text-muted">Teste todos os métodos HTTP - Apenas administradores</p>
-                                <button class="btn btn-outline-success btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods', 'GET', 'AdminOnly')">
-                                    GET /test-methods
-                                </button>
-                                <button class="btn btn-outline-primary btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods', 'POST', 'AdminOnly')">
-                                    POST /test-methods
-                                </button>
-                                <button class="btn btn-outline-warning btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods', 'PUT', 'AdminOnly')">
-                                    PUT /test-methods
-                                </button>
-                                <button class="btn btn-outline-danger btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods', 'DELETE', 'AdminOnly')">
-                                    DELETE /test-methods
-                                </button>
-                                <hr class="my-2">
-                                <button class="btn btn-outline-secondary btn-sm mb-1 w-100"
-                                    onclick="testAdminOnly('clear-cache')">
-                                    🗑️ Teste Original: Clear Cache
-                                </button>
+                <!-- Seção de Testes de Segurança -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="mb-0">🔒 Testes de Segurança</h5>
                             </div>
-                            <div class="col-md-4">
-                                <h6 class="text-warning">Política: ModeratorOrAbove</h6>
-                                <p class="small text-muted">Teste todos os métodos HTTP - Moderadores e administradores
-                                </p>
-                                <button class="btn btn-outline-success btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods-mod', 'GET', 'ModeratorOrAbove')">
-                                    GET /test-methods-mod
-                                </button>
-                                <button class="btn btn-outline-primary btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods-mod', 'POST', 'ModeratorOrAbove')">
-                                    POST /test-methods-mod
-                                </button>
-                                <button class="btn btn-outline-warning btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods-mod', 'PUT', 'ModeratorOrAbove')">
-                                    PUT /test-methods-mod
-                                </button>
-                                <button class="btn btn-outline-danger btn-sm mb-1 w-100"
-                                    onclick="testHttpMethod('test-methods-mod', 'DELETE', 'ModeratorOrAbove')">
-                                    DELETE /test-methods-mod
-                                </button>
-                            </div>
-                            <div class="col-md-3">
-                                <h6 class="text-info">Resultado dos Testes</h6>
-                                <div id="testResults" class="border rounded p-2 bg-light"
-                                    style="min-height: 200px; max-height: 300px; overflow-y: auto;">
-                                    <p class="text-muted mb-0 small">Os resultados dos testes aparecerão aqui...</p>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-warning text-dark">
+                                                <h6 class="mb-0">🛡️ Teste de Proteção CSRF</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <button class="btn btn-sm btn-outline-primary me-2"
+                                                        onclick="window.csrfHelper.getToken()">
+                                                        Obter Token
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info me-2"
+                                                        onclick="window.csrfHelper.renewToken()">
+                                                        Renovar Token
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary"
+                                                        onclick="window.csrfHelper.clearToken()">
+                                                        Limpar Token
+                                                    </button>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <button class="btn btn-sm btn-danger me-2"
+                                                        onclick="testWithoutCSRF()">
+                                                        🚨 Testar SEM CSRF
+                                                    </button>
+                                                    <button class="btn btn-sm btn-success" onclick="testWithCSRF()">
+                                                        ✅ Testar COM CSRF
+                                                    </button>
+                                                </div>
+                                                <div id="csrfTestResults" class="mt-3">
+                                                    <p class="text-muted mb-0 small">Resultados dos testes CSRF
+                                                        aparecerão aqui...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-danger text-white">
+                                                <h6 class="mb-0">🚨 Teste de Proteção XSS</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Testar Input Malicioso:</label>
+                                                    <input type="text" id="xssTestInput"
+                                                        class="form-control form-control-sm"
+                                                        placeholder="Digite algo como: <script>alert('XSS')</script>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <button class="btn btn-sm btn-danger me-2"
+                                                        onclick="testXSSVulnerability()">
+                                                        🚨 Testar XSS
+                                                    </button>
+                                                    <button class="btn btn-sm btn-success me-2"
+                                                        onclick="testXSSProtection()">
+                                                        ✅ Testar Proteção
+                                                    </button>
+                                                    <button class="btn btn-sm btn-info" onclick="checkSecurityStatus()">
+                                                        📊 Status Segurança
+                                                    </button>
+                                                    <button class="btn btn-sm btn-secondary"
+                                                        onclick="testSecuritySimple()">
+                                                        🔧 Teste Simples
+                                                    </button>
+                                                </div>
+                                                <div id="xssTestResults" class="mt-3">
+                                                    <p class="text-muted mb-0 small">Resultados dos testes XSS
+                                                        aparecerão aqui...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <button class="btn btn-outline-info btn-sm mt-2 w-100" onclick="clearTestResults()">
-                                    🧹 Limpar Resultados
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -200,34 +315,88 @@
         // Verificar permissões e carregar dados
         checkAdminPermissions();
 
+        // Funções de Debug
+        function forceShowSections() {
+            document.getElementById('adminOnlySection').style.display = 'block';
+            document.getElementById('moderatorOrAboveSection').style.display = 'block';
+            document.getElementById('accessDeniedAlert').classList.add('d-none');
+
+            // Carrega dados
+            loadSystemConfig();
+            loadSystemLogs();
+            loadReports();
+            loadAnalytics();
+
+            console.log('Seções forçadas a aparecer!');
+        }
+
+        function debugInfo() {
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            const jwt = localStorage.getItem('jwt_token');
+
+            console.log('=== DEBUG INFO ===');
+            console.log('User Data:', userData);
+            console.log('JWT Token:', jwt ? 'Existe' : 'Não existe');
+            console.log('UserRole:', userData.role);
+
+            alert(`
+                                DEBUG INFO:
+                                - User Role: ${userData.role || 'Undefined'}
+                                - JWT Token: ${jwt ? 'Existe' : 'Não existe'}
+                                - AdminOnly Section: ${document.getElementById('adminOnlySection').style.display}
+                                - ModeratorOrAbove Section: ${document.getElementById('moderatorOrAboveSection').style.display}
+                                - AccessDenied Alert: ${document.getElementById('accessDeniedAlert').classList.contains('d-none') ? 'Hidden' : 'Visible'}
+                                            `);
+        }
+
         function checkAdminPermissions() {
             const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
             const userRole = userData.role;
 
-            // Atualizar badge do usuário
-            document.getElementById('userRoleBadge').textContent = `Nível: ${userRole}`;
-            document.getElementById('userRoleBadge').className = `badge fs-6 ${userRole === 'Admin' ? 'bg-danger' : userRole === 'Moderator' ? 'bg-warning' : 'bg-secondary'}`;
+            console.log('User Data:', userData);
+            console.log('User Role:', userRole);
 
-            // Verificar permissões
-            if (userRole === 'Admin') {
-                // Admin vê tudo
+            // Verificar se é Admin (considerando duplicação como "Admin,Admin")
+            const isAdmin = !userRole || userRole.includes('Admin');
+            const isModerator = userRole && userRole.includes('Moderator') && !userRole.includes('Admin');
+
+            console.log('Is Admin:', isAdmin);
+            console.log('Is Moderator:', isModerator);
+
+            // Atualizar badge do usuário
+            const displayRole = isAdmin ? 'Admin' : isModerator ? 'Moderator' : 'User';
+            document.getElementById('userRoleBadge').textContent = `Nível: ${displayRole}`;
+            document.getElementById('userRoleBadge').className = `badge fs-6 ${isAdmin ? 'bg-danger' : isModerator ? 'bg-warning' : 'bg-secondary'}`;
+
+            // Sempre esconder o AccessDenied Alert primeiro
+            document.getElementById('accessDeniedAlert').classList.add('d-none');
+
+            if (isAdmin) {
+                // Admin vê tudo - seções já visíveis por padrão
                 document.getElementById('adminOnlySection').style.display = 'block';
                 document.getElementById('moderatorOrAboveSection').style.display = 'block';
-            } else if (userRole === 'Moderator') {
+                console.log('Loading data for Admin...');
+                loadSystemConfig();
+                loadSystemLogs();
+                loadReports();
+                loadAnalytics();
+            } else if (isModerator) {
                 // Moderator vê apenas seção ModeratorOrAbove
+                document.getElementById('adminOnlySection').style.display = 'none';
                 document.getElementById('moderatorOrAboveSection').style.display = 'block';
                 document.getElementById('accessDeniedAlert').classList.remove('d-none');
+                console.log('Loading data for Moderator...');
+                loadReports();
+                loadAnalytics();
             } else {
                 // User comum não vê nada especial
+                document.getElementById('adminOnlySection').style.display = 'none';
+                document.getElementById('moderatorOrAboveSection').style.display = 'none';
                 document.getElementById('accessDeniedAlert').classList.remove('d-none');
                 document.getElementById('accessDeniedAlert').innerHTML =
                     '<i class="fas fa-ban me-2"></i><strong>Acesso Negado:</strong> Você não tem permissão para acessar as funcionalidades administrativas.';
                 document.getElementById('accessDeniedAlert').className = 'alert alert-danger';
             }
-
-            // Mostrar dados
-            document.getElementById('adminContent').style.display = 'none';
-            document.getElementById('adminData').style.display = 'block';
         }
 
         // Funções para carregar dados AdminOnly
@@ -241,12 +410,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('systemConfig').innerHTML = `
-                                                                                                                                                                                        <div class="small">
-                                                                                                                                                                                            <strong>Servidor:</strong> ${data.configs.serverName}<br>
-                                                                                                                                                                                            <strong>Versão:</strong> ${data.configs.version}<br>
-                                                                                                                                                                                            <strong>Ambiente:</strong> ${data.configs.environment}<br>
-                                                                                                                                                                                            <strong>Máx. Usuários:</strong> ${data.configs.maxUsers}
-                                                                                                                                                                                        </div>`;
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>Servidor:</strong> ${data.configs.serverName}<br>
+                                                                                                                                            <strong>Versão:</strong> ${data.configs.version}<br>
+                                                                                                                                            <strong>Ambiente:</strong> ${data.configs.environment}<br>
+                                                                                                                                            <strong>Máx. Usuários:</strong> ${data.configs.maxUsers}
+                                                                                                                                        </div>`;
                 } else if (response.status === 403) {
                     document.getElementById('systemConfig').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
                 }
@@ -265,12 +434,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('systemLogs').innerHTML = `
-                                                                                                                                                                                        <div class="small">
-                                                                                                                                                                                            <strong>Total de Entradas:</strong> ${data.totalEntries}<br>
-                                                                                                                                                                                            <strong>Erros Críticos:</strong> ${data.criticalErrors}<br>
-                                                                                                                                                                                            <strong>Avisos:</strong> ${data.warnings}<br>
-                                                                                                                                                                                            <strong>Últimas entradas:</strong> ${data.logs.length}
-                                                                                                                                                                                        </div>`;
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>Total de Entradas:</strong> ${data.totalEntries}<br>
+                                                                                                                                            <strong>Erros Críticos:</strong> ${data.criticalErrors}<br>
+                                                                                                                                            <strong>Avisos:</strong> ${data.warnings}<br>
+                                                                                                                                            <strong>Últimas entradas:</strong> ${data.logs.length}
+                                                                                                                                        </div>`;
                 } else if (response.status === 403) {
                     document.getElementById('systemLogs').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
                 }
@@ -326,30 +495,6 @@
             }
         }
 
-        // Função de teste temporária usando GET
-        async function testClearCacheWithGet() {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                const response = await fetch('/api/admin/clear-cache-test', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    alert('✅ Teste GET funcionou: ' + data.message);
-                } else if (response.status === 403) {
-                    alert('❌ Teste GET também falhou com 403');
-                } else {
-                    alert('❌ Teste GET falhou com status: ' + response.status);
-                }
-            } catch (error) {
-                alert('❌ Erro no teste GET: ' + error.message);
-            }
-        }
-
         // Funções para carregar dados ModeratorOrAbove
         async function loadReports() {
             try {
@@ -361,12 +506,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('reportsData').innerHTML = `
-                                                                                                                                                                                        <div class="small">
-                                                                                                                                                                                            <strong>Usuários Ativos:</strong> ${data.reports.userActivity.activeUsers}<br>
-                                                                                                                                                                                            <strong>Total de Logins:</strong> ${data.reports.userActivity.totalLogins}<br>
-                                                                                                                                                                                            <strong>Produtos:</strong> ${data.reports.productStats.totalProducts}<br>
-                                                                                                                                                                                            <strong>Uptime:</strong> ${data.reports.systemPerformance.uptime}
-                                                                                                                                                                                        </div>`;
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>Usuários Ativos:</strong> ${data.reports.userActivity.activeUsers}<br>
+                                                                                                                                            <strong>Total de Logins:</strong> ${data.reports.userActivity.totalLogins}<br>
+                                                                                                                                            <strong>Produtos:</strong> ${data.reports.productStats.totalProducts}<br>
+                                                                                                                                            <strong>Uptime:</strong> ${data.reports.systemPerformance.uptime}
+                                                                                                                                        </div>`;
                 } else if (response.status === 403) {
                     document.getElementById('reportsData').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
                 }
@@ -385,12 +530,12 @@
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('analyticsData').innerHTML = `
-                                                                                                                                                                                        <div class="small">
-                                                                                                                                                                                            <strong>Taxa de Conversão:</strong> ${data.analytics.conversionRate}%<br>
-                                                                                                                                                                                            <strong>Feature Mais Popular:</strong> ${data.analytics.popularFeatures[0].feature}<br>
-                                                                                                                                                                                            <strong>Distribuição:</strong> Brasil ${data.analytics.geographicDistribution.brazil}%<br>
-                                                                                                                                                                                            <strong>Insights:</strong> ${data.insights.length} disponíveis
-                                                                                                                                                                                        </div>`;
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>Taxa de Conversão:</strong> ${data.analytics.conversionRate}%<br>
+                                                                                                                                            <strong>Feature Mais Popular:</strong> ${data.analytics.popularFeatures[0].feature}<br>
+                                                                                                                                            <strong>Distribuição:</strong> Brasil ${data.analytics.geographicDistribution.brazil}%<br>
+                                                                                                                                            <strong>Insights:</strong> ${data.insights.length} disponíveis
+                                                                                                                                        </div>`;
                 } else if (response.status === 403) {
                     document.getElementById('analyticsData').innerHTML = '<div class="text-danger small">❌ Acesso negado!</div>';
                 }
@@ -399,30 +544,22 @@
             }
         }
 
-        // Função principal para testar todos os métodos HTTP
+        // Função principal para testar todos os métodos HTTP com CSRF
         async function testHttpMethod(endpoint, method, policy) {
-            const token = localStorage.getItem('jwt_token');
             const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
 
             try {
-                const fetchOptions = {
+                const body = (method === 'POST' || method === 'PUT') ? JSON.stringify({
+                    test: true,
                     method: method,
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                };
+                    timestamp: new Date().toISOString()
+                }) : undefined;
 
-                // Adicionar Content-Type e body para POST/PUT
-                if (method === 'POST' || method === 'PUT') {
-                    fetchOptions.headers['Content-Type'] = 'application/json';
-                    fetchOptions.body = JSON.stringify({
-                        test: true,
-                        method: method,
-                        timestamp: new Date().toISOString()
-                    });
-                }
-
-                const response = await fetch(`/api/admin/${endpoint}`, fetchOptions);
+                // Usar o CSRF helper para fazer a requisição segura
+                const response = await window.csrfHelper.securedFetch(`/api/admin/${endpoint}`, {
+                    method: method,
+                    body: body
+                });
 
                 let responseData = null;
                 try {
@@ -432,49 +569,43 @@
                 }
 
                 const resultHtml = `
-                                <div class="border-bottom pb-2 mb-2">
-                                    <div class="small">
-                                        <strong>${method} /${endpoint}</strong> (${policy})<br>
-                                        <strong>Usuário:</strong> ${userData.role}<br>
-                                        <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
-                                        <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
-                                        ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> ${responseData.error || 'Acesso negado'}`}<br>
-                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-                                    </div>
-                                </div>
-                            `;
+                                                                                                                                    <div class="border-bottom pb-2 mb-2">
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>${method} /${endpoint}</strong> (${policy})<br>
+                                                                                                                                            <strong>Usuário:</strong> ${userData.role}<br>
+                                                                                                                                            <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
+                                                                                                                                            <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
+                                                                                                                                            ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> ${responseData.error || 'Acesso negado'}`}<br>
+                                                                                                                                            ${responseData.csrfValidated ? '<strong>🛡️ CSRF:</strong> Validado<br>' : ''}
+                                                                                                                                            <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
 
                 appendTestResults(resultHtml);
             } catch (error) {
                 const errorHtml = `
-                                <div class="border-bottom pb-2 mb-2">
-                                    <div class="text-danger small">
-                                        <strong>${method} /${endpoint}</strong> (${policy})<br>
-                                        <strong>❌ Erro:</strong> ${error.message}<br>
-                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-                                    </div>
-                                </div>
-                            `;
+                                                                                                                                    <div class="border-bottom pb-2 mb-2">
+                                                                                                                                        <div class="text-danger small">
+                                                                                                                                            <strong>${method} /${endpoint}</strong> (${policy})<br>
+                                                                                                                                            <strong>❌ Erro:</strong> ${error.message}<br>
+                                                                                                                                            <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
                 appendTestResults(errorHtml);
             }
         }
 
-        // Função para testar o endpoint original de clear-cache
+        // Função para testar o endpoint original de clear-cache com CSRF
         async function testAdminOnly(endpoint) {
-            const token = localStorage.getItem('jwt_token');
             const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
 
             try {
-                const fetchOptions = {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                };
-
-                // Usar DELETE apenas para clear-cache
-                if (endpoint === 'clear-cache') {
-                    fetchOptions.method = 'DELETE';
-                }
-
-                const response = await fetch(`/api/admin/${endpoint}`, fetchOptions);
+                // Usar o CSRF helper para fazer a requisição segura
+                const response = await window.csrfHelper.securedFetch(`/api/admin/${endpoint}`, {
+                    method: endpoint === 'clear-cache' ? 'DELETE' : 'GET'
+                });
 
                 let responseData = null;
                 try {
@@ -484,28 +615,29 @@
                 }
 
                 const resultHtml = `
-                                <div class="border-bottom pb-2 mb-2">
-                                    <div class="small">
-                                        <strong>DELETE /${endpoint}</strong> (Original)<br>
-                                        <strong>Usuário:</strong> ${userData.role}<br>
-                                        <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
-                                        <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
-                                        ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> Acesso negado`}<br>
-                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-                                    </div>
-                                </div>
-                            `;
+                                                                                                                                    <div class="border-bottom pb-2 mb-2">
+                                                                                                                                        <div class="small">
+                                                                                                                                            <strong>DELETE /${endpoint}</strong> (Original)<br>
+                                                                                                                                            <strong>Usuário:</strong> ${userData.role}<br>
+                                                                                                                                            <strong>Status:</strong> <span class="${response.ok ? 'text-success' : 'text-danger'}">${response.status}</span><br>
+                                                                                                                                            <strong>Resultado:</strong> ${response.ok ? '✅ Sucesso' : '❌ Falhou'}<br>
+                                                                                                                                            ${response.ok ? `<strong>Resposta:</strong> ${responseData.message || 'OK'}` : `<strong>Erro:</strong> Acesso negado`}<br>
+                                                                                                                                            ${responseData.csrfValidated ? '<strong>🛡️ CSRF:</strong> Validado<br>' : ''}
+                                                                                                                                            <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
                 appendTestResults(resultHtml);
             } catch (error) {
                 const errorHtml = `
-                                <div class="border-bottom pb-2 mb-2">
-                                    <div class="text-danger small">
-                                        <strong>DELETE /${endpoint}</strong> (Original)<br>
-                                        <strong>❌ Erro:</strong> ${error.message}<br>
-                                        <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-                                    </div>
-                                </div>
-                            `;
+                                                                                                                                    <div class="border-bottom pb-2 mb-2">
+                                                                                                                                        <div class="text-danger small">
+                                                                                                                                            <strong>DELETE /${endpoint}</strong> (Original)<br>
+                                                                                                                                            <strong>❌ Erro:</strong> ${error.message}<br>
+                                                                                                                                            <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                                                                                                                                        </div>
+                                                                                                                                    </div>
+                                                                                                                                `;
                 appendTestResults(errorHtml);
             }
         }
@@ -523,5 +655,40 @@
         function clearTestResults() {
             document.getElementById('testResults').innerHTML = '<p class="text-muted mb-0 small">Os resultados dos testes aparecerão aqui...</p>';
         }
+
+        // Funções para teste CSRF
+        async function testWithoutCSRF() {
+            try {
+                const response = await fetch('/api/antiforgery/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    },
+                    body: JSON.stringify({ test: 'Teste sem CSRF' })
+                });
+
+                if (response.status === 400) {
+                    document.getElementById('csrfTestResults').innerHTML =
+                        `<div class="text-success">✅ Proteção funcionando! Status 400 - Token CSRF necessário</div>`;
+                } else {
+                    document.getElementById('csrfTestResults').innerHTML =
+                        `<div class="text-warning">⚠️ Resposta inesperada: ${response.status} (Deveria retornar 400!)</div>`;
+                }
+            } catch (error) {
+                document.getElementById('csrfTestResults').innerHTML =
+                    `<div class="text-success">✅ Proteção funcionando! Erro: ${error.message}</div>`;
+            }
+        }
+
+        async function testWithCSRF() {
+            const result = await window.csrfHelper.testValidation();
+            document.getElementById('csrfTestResults').innerHTML =
+                `<div class="text-${result ? 'success' : 'danger'}">
+                                                                                                                                    ${result ? '✅ Teste com CSRF bem-sucedido' : '❌ Falha inesperada'}
+                                                                                                                                 </div>`;
+        }
+
+        // Funções XSS foram movidas para admin-functions.js
     </script>
 }

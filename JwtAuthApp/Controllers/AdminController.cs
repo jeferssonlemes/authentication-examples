@@ -38,13 +38,15 @@ namespace JwtAuthApp.Controllers
         // Endpoint que apenas ADMIN pode acessar
         [HttpPost("system-config")]
         [Authorize(Policy = "AdminOnly")]
+        [ValidateAntiForgeryToken]
         public IActionResult UpdateSystemConfig([FromBody] object configData)
         {
             return Ok(new
             {
                 message = "Configurações do sistema atualizadas com sucesso!",
                 updatedBy = User.Identity?.Name,
-                timestamp = DateTime.UtcNow
+                timestamp = DateTime.UtcNow,
+                csrfValidated = true
             });
         }
 
@@ -159,6 +161,7 @@ namespace JwtAuthApp.Controllers
 
         [HttpPost("test-methods")]
         [Authorize(Policy = "AdminOnly")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsPost([FromBody] object data)
         {
             Console.WriteLine($"✅ POST /test-methods hit by user: {User.Identity?.Name}");
@@ -168,12 +171,14 @@ namespace JwtAuthApp.Controllers
                 message = "Teste POST AdminOnly funcionou!",
                 user = User.Identity?.Name,
                 timestamp = DateTime.UtcNow,
-                receivedData = data
+                receivedData = data,
+                csrfValidated = true
             });
         }
 
         [HttpPut("test-methods")]
         [Authorize(Policy = "AdminOnly")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsPut([FromBody] object data)
         {
             Console.WriteLine($"✅ PUT /test-methods hit by user: {User.Identity?.Name}");
@@ -183,12 +188,14 @@ namespace JwtAuthApp.Controllers
                 message = "Teste PUT AdminOnly funcionou!",
                 user = User.Identity?.Name,
                 timestamp = DateTime.UtcNow,
-                receivedData = data
+                receivedData = data,
+                csrfValidated = true
             });
         }
 
         [HttpDelete("test-methods")]
         [Authorize(Policy = "AdminOnly")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsDelete()
         {
             Console.WriteLine($"✅ DELETE /test-methods hit by user: {User.Identity?.Name}");
@@ -197,7 +204,8 @@ namespace JwtAuthApp.Controllers
                 method = "DELETE",
                 message = "Teste DELETE AdminOnly funcionou!",
                 user = User.Identity?.Name,
-                timestamp = DateTime.UtcNow
+                timestamp = DateTime.UtcNow,
+                csrfValidated = true
             });
         }
 
@@ -218,6 +226,7 @@ namespace JwtAuthApp.Controllers
 
         [HttpPost("test-methods-mod")]
         [Authorize(Policy = "ModeratorOrAbove")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsModPost([FromBody] object data)
         {
             Console.WriteLine($"✅ POST /test-methods-mod hit by user: {User.Identity?.Name}");
@@ -227,12 +236,14 @@ namespace JwtAuthApp.Controllers
                 message = "Teste POST ModeratorOrAbove funcionou!",
                 user = User.Identity?.Name,
                 timestamp = DateTime.UtcNow,
-                receivedData = data
+                receivedData = data,
+                csrfValidated = true
             });
         }
 
         [HttpPut("test-methods-mod")]
         [Authorize(Policy = "ModeratorOrAbove")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsModPut([FromBody] object data)
         {
             Console.WriteLine($"✅ PUT /test-methods-mod hit by user: {User.Identity?.Name}");
@@ -242,12 +253,14 @@ namespace JwtAuthApp.Controllers
                 message = "Teste PUT ModeratorOrAbove funcionou!",
                 user = User.Identity?.Name,
                 timestamp = DateTime.UtcNow,
-                receivedData = data
+                receivedData = data,
+                csrfValidated = true
             });
         }
 
         [HttpDelete("test-methods-mod")]
         [Authorize(Policy = "ModeratorOrAbove")]
+        [ValidateAntiForgeryToken]
         public IActionResult TestMethodsModDelete()
         {
             Console.WriteLine($"✅ DELETE /test-methods-mod hit by user: {User.Identity?.Name}");
@@ -256,13 +269,15 @@ namespace JwtAuthApp.Controllers
                 method = "DELETE",
                 message = "Teste DELETE ModeratorOrAbove funcionou!",
                 user = User.Identity?.Name,
-                timestamp = DateTime.UtcNow
+                timestamp = DateTime.UtcNow,
+                csrfValidated = true
             });
         }
 
         // Endpoint original de clear-cache mantido
         [HttpDelete("clear-cache")]
         [Authorize(Policy = "AdminOnly")]
+        [ValidateAntiForgeryToken]
         public IActionResult ClearSystemCache()
         {
             Console.WriteLine($"🗑️ ClearSystemCache endpoint hit by user: {User.Identity?.Name}");
@@ -275,7 +290,8 @@ namespace JwtAuthApp.Controllers
                 operation = "CLEAR_CACHE",
                 executedBy = User.Identity?.Name,
                 timestamp = DateTime.UtcNow,
-                affectedSystems = new[] { "UserCache", "ProductCache", "SessionCache" }
+                affectedSystems = new[] { "UserCache", "ProductCache", "SessionCache" },
+                csrfValidated = true
             });
         }
     }

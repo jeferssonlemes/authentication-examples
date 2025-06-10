@@ -61,6 +61,7 @@ namespace JwtAuthApp.Extensions
                             {
                                 Console.WriteLine($"  {claim.Type}: {claim.Value}");
                             }
+
                             return Task.CompletedTask;
                         },
                         OnChallenge = context =>
