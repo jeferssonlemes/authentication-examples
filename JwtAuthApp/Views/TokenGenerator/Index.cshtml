@@ -1,0 +1,432 @@
+@using JwtAuthApp.Models
+@model TokenGeneratorViewModel
+@{
+    ViewData["Title"] = "Gerador de Tokens - API Pública";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-key"></i> Gerador de Tokens - API Pública</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active">Token Generator</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    @if (!string.IsNullOrEmpty(Model.Success))
+    {
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-check-circle"></i> @Model.Success
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i> @Model.Error
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+    }
+
+    <div class="row">
+        <!-- Formulário de Geração -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus"></i> Criar Novo Token</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="Generate">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Request_ClientId" class="form-label">
+                                        <i class="fas fa-user"></i> Client ID *
+                                    </label>
+                                    <input type="text" class="form-control" id="Request_ClientId" 
+                                           name="Request.ClientId" value="@Model.Request.ClientId" 
+                                           placeholder="Ex: mobile-app-v1" required>
+                                    <div class="form-text">Identificador único do cliente/aplicação</div>
+                                    <span asp-validation-for="Request.ClientId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Request_ClientName" class="form-label">
+                                        <i class="fas fa-tag"></i> Nome do Cliente *
+                                    </label>
+                                    <input type="text" class="form-control" id="Request_ClientName" 
+                                           name="Request.ClientName" value="@Model.Request.ClientName" 
+                                           placeholder="Ex: App Mobile - iOS" required>
+                                    <div class="form-text">Nome amigável para identificação</div>
+                                    <span asp-validation-for="Request.ClientName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-shield-alt"></i> Permissões *
+                            </label>
+                            <div class="row">
+                                @foreach (var permission in Model.AvailablePermissions)
+                                {
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" 
+                                                                           name="Request.Permissions" value="@permission.Key" 
+                                                                           id="perm_@permission.Key.Replace(".", "_")">
+                                                                    <label class="form-check-label" for="perm_@permission.Key.Replace(".", "_")">
+                                                                        <strong>@permission.Key.Split('.').Last().ToUpper()</strong>
+                                                                        <br><small class="text-muted">@permission.Value</small>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                }
+                            </div>
+                            <span asp-validation-for="Request.Permissions" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Request_ExpirationDays" class="form-label">
+                                        <i class="fas fa-calendar"></i> Expiração (dias)
+                                    </label>
+                                    <select class="form-select" id="Request_ExpirationDays" name="Request.ExpirationDays">
+                                        <option value="7">7 dias</option>
+                                        <option value="30" selected="selected">30 dias</option>
+                                        <option value="90">90 dias</option>
+                                        <option value="365">1 ano</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="Request_RateLimit" class="form-label">
+                                        <i class="fas fa-tachometer-alt"></i> Rate Limit (req/hora)
+                                    </label>
+                                    <input type="number" class="form-control" id="Request_RateLimit" 
+                                           name="Request.RateLimit" value="@Model.Request.RateLimit" 
+                                           min="1" max="10000" placeholder="1000">
+                                    <div class="form-text">Limite de requisições por hora (opcional)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Request_Description" class="form-label">
+                                <i class="fas fa-comment"></i> Descrição
+                            </label>
+                            <textarea class="form-control" id="Request_Description" name="Request.Description" 
+                                      rows="3" placeholder="Descreva o propósito deste token...">@Model.Request.Description</textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="generateToken()">
+                                <i class="fas fa-key"></i> Gerar Token
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Gerado -->
+        <div class="col-lg-4">
+            @if (Model.GeneratedToken != null)
+            {
+                                        <div class="card shadow-sm border-success">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="mb-0"><i class="fas fa-check"></i> Token Gerado</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Cliente:</strong></label>
+                                                    <p class="mb-1">@Model.GeneratedToken.ClientName</p>
+                                                    <small class="text-muted">ID: @Model.GeneratedToken.ClientId</small>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Permissões:</strong></label>
+                                                    @foreach (var permission in Model.GeneratedToken.Permissions)
+                                                    {
+                                                                                <span class="badge bg-primary me-1 mb-1">@permission.Split('.').Last().ToUpper()</span>
+                                                    }
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Validade:</strong></label>
+                                                    <p class="mb-0">@Model.GeneratedToken.ExpiresAt.ToString("dd/MM/yyyy HH:mm")</p>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Token JWT:</strong></label>
+                                                    <div class="input-group">
+                                                        <textarea class="form-control" id="generatedToken" rows="4" readonly>@Model.GeneratedToken.Token</textarea>
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="copyToken()">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <strong>Importante:</strong> Copie e guarde este token em local seguro. 
+                                                    Ele não será exibido novamente.
+                                                </div>
+                                            </div>
+                                        </div>
+            }
+
+            <!-- Validador de Token -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-search"></i> Validar Token</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="tokenToValidate" class="form-label">Token JWT:</label>
+                        <textarea class="form-control" id="tokenToValidate" rows="3" 
+                                  placeholder="Cole o token JWT aqui..."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-info" onclick="validateToken()">
+                        <i class="fas fa-check"></i> Validar
+                    </button>
+                    <div id="validationResult" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+                            <script>
+                                function copyToken() {
+                                    const tokenTextarea = document.getElementById('generatedToken');
+                                    tokenTextarea.select();
+                                    tokenTextarea.setSelectionRange(0, 99999);
+                                    document.execCommand('copy');
+            
+                                    const button = event.target.closest('button');
+                                    const originalHtml = button.innerHTML;
+                                    button.innerHTML = '<i class="fas fa-check"></i>';
+                                    button.classList.remove('btn-outline-secondary');
+                                    button.classList.add('btn-success');
+            
+                                    setTimeout(() => {
+                                        button.innerHTML = originalHtml;
+                                        button.classList.remove('btn-success');
+                                        button.classList.add('btn-outline-secondary');
+                                    }, 1000);
+                                }
+
+                                async function validateToken() {
+                                    const token = document.getElementById('tokenToValidate').value.trim();
+                                    const resultDiv = document.getElementById('validationResult');
+            
+                                    if (!token) {
+                                        resultDiv.innerHTML = '<div class="alert alert-warning">Por favor, insira um token.</div>';
+                                        return;
+                                    }
+
+                                    try {
+                                        const response = await fetch('@Url.Action("ValidateToken")', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({ token: token })
+                                        });
+
+                                        const result = await response.json();
+
+                                        if (result.success) {
+                                            resultDiv.innerHTML = `
+                                                <div class="alert alert-success">
+                                                    <h6><i class="fas fa-check"></i> Token Válido</h6>
+                                                    <p><strong>Cliente:</strong> ${result.clientName} (${result.clientId})</p>
+                                                    <p><strong>Permissões:</strong> ${result.permissions.join(', ')}</p>
+                                                    <p><strong>Expira em:</strong> ${result.expiresAt}</p>
+                                                </div>
+                                            `;
+                                        } else {
+                                            resultDiv.innerHTML = `
+                                                <div class="alert alert-danger">
+                                                    <i class="fas fa-times"></i> ${result.message}
+                                                </div>
+                                            `;
+                                        }
+                                    } catch (error) {
+                                        resultDiv.innerHTML = `
+                                            <div class="alert alert-danger">
+                                                <i class="fas fa-exclamation-triangle"></i> Erro ao validar token.
+                                            </div>
+                                        `;
+                                    }
+                                }
+
+                                        async function generateToken() {
+            // Validar permissões
+            const checkboxes = document.querySelectorAll('input[name="Request.Permissions"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Por favor, selecione pelo menos uma permissão.');
+                return;
+            }
+
+            // Coletar dados do formulário
+            const formData = {
+                ClientId: document.getElementById('Request_ClientId').value,
+                ClientName: document.getElementById('Request_ClientName').value,
+                Permissions: Array.from(checkboxes).map(cb => cb.value),
+                ExpirationDays: parseInt(document.getElementById('Request_ExpirationDays').value),
+                RateLimit: parseInt(document.getElementById('Request_RateLimit').value) || null,
+                Description: document.getElementById('Request_Description').value
+            };
+
+            // Validar campos obrigatórios
+            if (!formData.ClientId || !formData.ClientName) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            try {
+                // Obter token JWT
+                const jwtToken = localStorage.getItem('jwt_token');
+                if (!jwtToken) {
+                    alert('Você precisa estar logado para gerar tokens.');
+                    window.location.href = '/Home/Login';
+                    return;
+                }
+
+                // Obter token CSRF
+                const csrfResponse = await fetch('/api/antiforgery/token');
+                const csrfData = await csrfResponse.json();
+
+                // Fazer requisição para gerar token
+                const response = await fetch('@Url.Action("Generate")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${jwtToken}`,
+                        'X-CSRF-TOKEN': csrfData.token
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Mostrar o token gerado na interface
+                        showGeneratedToken(result.token);
+                        alert('Token gerado com sucesso!');
+                    } else {
+                        alert('Erro: ' + result.message);
+                    }
+                } else if (response.status === 401) {
+                    alert('Você não tem permissão para gerar tokens. Apenas administradores podem fazer isso.');
+                } else {
+                    const error = await response.text();
+                    alert('Erro ao gerar token: ' + error);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao gerar token: ' + error.message);
+            }
+        }
+
+                 function showGeneratedToken(tokenData) {
+             const tokenContainer = document.querySelector('.col-lg-4');
+             
+             const tokenHtml = `
+                 <div class="card shadow-sm border-success">
+                     <div class="card-header bg-success text-white">
+                         <h5 class="mb-0"><i class="fas fa-check"></i> Token Gerado</h5>
+                     </div>
+                     <div class="card-body">
+                         <div class="mb-3">
+                             <label class="form-label"><strong>Cliente:</strong></label>
+                             <p class="mb-1">${tokenData.clientName}</p>
+                             <small class="text-muted">ID: ${tokenData.clientId}</small>
+                         </div>
+
+                         <div class="mb-3">
+                             <label class="form-label"><strong>Permissões:</strong></label>
+                             ${tokenData.permissions.map(perm => `<span class="badge bg-primary me-1 mb-1">${perm.split('.').pop().toUpperCase()}</span>`).join('')}
+                         </div>
+
+                         <div class="mb-3">
+                             <label class="form-label"><strong>Validade:</strong></label>
+                             <p class="mb-0">${new Date(tokenData.expiresAt).toLocaleString('pt-BR')}</p>
+                         </div>
+
+                         <div class="mb-3">
+                             <label class="form-label"><strong>Token JWT:</strong></label>
+                             <div class="input-group">
+                                 <textarea class="form-control" id="generatedToken" rows="4" readonly>${tokenData.token}</textarea>
+                                 <button class="btn btn-outline-secondary" type="button" onclick="copyToken()">
+                                     <i class="fas fa-copy"></i>
+                                 </button>
+                             </div>
+                         </div>
+
+                         <div class="alert alert-warning">
+                             <i class="fas fa-exclamation-triangle"></i>
+                             <strong>Importante:</strong> Copie e guarde este token em local seguro. 
+                             Ele não será exibido novamente.
+                         </div>
+                     </div>
+                 </div>
+             `;
+             
+             // Remover card de token existente se houver
+             const existingTokenCard = tokenContainer.querySelector('.border-success');
+             if (existingTokenCard) {
+                 existingTokenCard.remove();
+             }
+             
+             // Adicionar novo card antes do validador
+             const validatorCard = tokenContainer.querySelector('.mt-4');
+             validatorCard.insertAdjacentHTML('beforebegin', tokenHtml);
+         }
+
+         document.addEventListener('DOMContentLoaded', function() {
+             // Verificar autenticação ao carregar a página
+             const userData = localStorage.getItem('user_data');
+             if (!userData) {
+                 alert('Você precisa estar logado para acessar esta página.');
+                 window.location.href = '/Home/Login';
+                 return;
+             }
+             
+             const user = JSON.parse(userData);
+             const userRole = user.role;
+             
+             // Debug: mostrar informações do role
+             console.log('TokenGenerator - User Data:', user);
+             console.log('TokenGenerator - User Role:', userRole);
+             console.log('TokenGenerator - Is Admin:', userRole && userRole.includes('Admin'));
+             
+             // Verificar se é Admin (considerando possível duplicação como "Admin,Admin")
+             const isAdmin = userRole && userRole.includes('Admin');
+             
+             if (!isAdmin) {
+                 alert('Apenas administradores podem acessar o gerador de tokens.');
+                 window.location.href = '/Home/Dashboard';
+                 return;
+             }
+             
+             console.log('TokenGenerator - Access granted to Admin user');
+         });
+                            </script>
+}

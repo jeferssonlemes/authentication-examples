@@ -35,11 +35,15 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 // Configurar autorização com políticas usando extensão
 builder.Services.AddPermissionPolicies();
 
+// Configurar políticas específicas para API pública
+builder.Services.AddPublicApiPolicies();
+
 // Configurar Rate Limiting com políticas usando extensão
 builder.Services.AddRateLimitingPolicies();
 
 // Registrar serviços
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PublicApiTokenService>();
 
 // Configurar CORS - ajustar para permitir headers do AntiForgery
 builder.Services.AddCors(options =>

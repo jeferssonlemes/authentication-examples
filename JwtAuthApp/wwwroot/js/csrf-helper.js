@@ -17,12 +17,6 @@ class CSRFHelper {
           "🛡️ Token CSRF obtido:",
           this.token?.substring(0, 20) + "..."
         );
-        alert(
-          "✅ Token CSRF obtido com sucesso!\n" +
-            "Preview: " +
-            this.token?.substring(0, 20) +
-            "..."
-        );
         return this.token;
       }
     } catch (error) {
