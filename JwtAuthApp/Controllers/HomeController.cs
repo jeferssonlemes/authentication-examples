@@ -11,7 +11,7 @@ namespace JwtAuthApp.Controllers
             {
                 return RedirectToAction("Dashboard");
             }
-            
+
             return View("Login");
         }
 
@@ -40,6 +40,11 @@ namespace JwtAuthApp.Controllers
             return View();
         }
 
+        public IActionResult RateLimit()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult Logout()
         {
@@ -47,4 +52,4 @@ namespace JwtAuthApp.Controllers
             return RedirectToAction("Login");
         }
     }
-} 
+}

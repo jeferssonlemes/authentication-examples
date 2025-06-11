@@ -122,7 +122,7 @@ builder.Services.AddAntiforgery(options =>
 
 #### 📍 Localização
 
-- `Program.cs` (middleware personalizado)
+- `Extensions/SecurityHeadersExtensions.cs`
 
 #### 🔧 Implementação
 
@@ -274,7 +274,268 @@ public async Task InvokeAsync(HttpContext context)
 
 ---
 
-### 7. **Configuração CORS**
+### 7. **Rate Limiting (Limitação de Taxa)**
+
+#### 📍 Localização
+
+- `Extensions/RateLimitingExtensions.cs`
+- `Controllers/RateLimitController.cs`
+- `Views/Home/RateLimit.cshtml`
+- `wwwroot/js/rate-limit-tests.js`
+
+#### 🔧 Estrutura Base
+
+```csharp
+services.AddRateLimiter(rateLimiterOptions =>
+{
+    // Cada política usa uma partition key (normalmente IP)
+    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
+    
+    // Configuração do comportamento quando limite é excedido
+    rateLimiterOptions.OnRejected = async (context, _) => {
+        // Log + Headers + Resposta personalizada (429)
+    };
+});
+```
+
+#### 🎯 **Políticas Implementadas**
+
+##### **1. GeneralPolicy - Sliding Window (Janela Deslizante)**
+
+```csharp
+rateLimiterOptions.AddPolicy("GeneralPolicy", httpContext =>
+    RateLimitPartition.GetSlidingWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 100,              // 🎯 100 requisições permitidas
+            Window = TimeSpan.FromMinutes(1), // ⏰ Janela de 1 minuto
+            SegmentsPerWindow = 6,          // 📊 Divide em 6 segmentos (10s cada)
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 10                 // 🚪 Fila de 10 requisições
+        }));
+```
+
+**Como funciona:**
+
+- **Janela Deslizante**: Sempre olha os últimos 60 segundos
+- **Segmentos**: 6 períodos de 10s cada (0-10s, 10-20s, 20-30s, etc.)
+- **Distribuição Suave**: Evita "rajadas" no início de cada minuto
+- **Exemplo**: Se fez 60 req nos primeiros 30s, só pode fazer 40 nos próximos 30s
+
+##### **2. AuthPolicy - Fixed Window (Janela Fixa)**
+
+```csharp
+rateLimiterOptions.AddPolicy("AuthPolicy", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,                // 🎯 5 tentativas de login
+            Window = TimeSpan.FromMinutes(5), // ⏰ Janela fixa de 5 minutos
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0                  // 🚫 SEM fila - rejeita imediatamente
+        }));
+```
+
+**Como funciona:**
+
+- **Janela Fixa**: Reinicia do zero a cada 5 minutos
+- **Sem Fila**: 6ª tentativa = 429 imediato (ideal para login)
+- **Reset Completo**: 12:00-12:05 (5 tentativas) → 12:05-12:10 (reset completo)
+- **Proteção Brute Force**: Previne ataques de força bruta
+
+##### **3. StrictPolicy - Token Bucket (Balde de Tokens)**
+
+```csharp
+rateLimiterOptions.AddPolicy("StrictPolicy", httpContext =>
+    RateLimitPartition.GetTokenBucketLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new TokenBucketRateLimiterOptions
+        {
+            TokenLimit = 10,                // 🪣 Balde comporta 10 tokens
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 2,                 // 🚪 Fila pequena de 2
+            ReplenishmentPeriod = TimeSpan.FromSeconds(30), // ⏱️ Reabastece a cada 30s
+            TokensPerPeriod = 2,            // ➕ Adiciona 2 tokens por período
+            AutoReplenishment = true        // 🔄 Reabastece automaticamente
+        }));
+```
+
+**Como funciona:**
+
+- **Consumo de Tokens**: Cada requisição "gasta" 1 token
+- **Reabastecimento**: +2 tokens a cada 30 segundos
+- **Rajadas Permitidas**: Pode fazer 10 requisições seguidas (se tiver tokens)
+- **Controle Sustentado**: Força uma taxa máxima sustentável (4 req/min)
+
+##### **4. ConcurrencyPolicy - Concurrency Limiter (Limitador Simultâneo)**
+
+```csharp
+rateLimiterOptions.AddPolicy("ConcurrencyPolicy", httpContext =>
+    RateLimitPartition.GetConcurrencyLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new ConcurrencyLimiterOptions
+        {
+            PermitLimit = 5,                // 🔄 5 requisições simultâneas
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 10                 // 🚪 10 esperando na fila
+        }));
+```
+
+**Como funciona:**
+
+- **Não é sobre tempo**: É sobre quantas estão processando simultaneamente
+- **Quando termina uma**: Libera espaço para próxima da fila
+- **Ideal para operações longas**: Upload, processamento, etc.
+- **Controla recursos**: Evita sobrecarga do servidor
+
+##### **5. TestPolicy - Sliding Window (Para Testes)**
+
+```csharp
+rateLimiterOptions.AddPolicy("TestPolicy", httpContext =>
+    RateLimitPartition.GetSlidingWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 20,               // 🎯 20 requisições por minuto
+            Window = TimeSpan.FromMinutes(1), // ⏰ 1 minuto
+            SegmentsPerWindow = 4,          // 📊 4 segmentos (15s cada)
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 3                  // 🚪 Fila pequena para demonstração
+        }));
+```
+
+**Comportamento no seu teste:**
+
+- **Requisições 1-20**: ✅ Processadas normalmente
+- **Requisição 21**: ⏳ Vai para fila (posição 1/3)
+- **Requisições 22-23**: ⏳ Vão para fila (posições 2/3 e 3/3)
+- **Requisição 24+**: ❌ 429 (fila cheia)
+
+##### **6. NoQueuePolicy - Fixed Window (Rejeição Imediata)**
+
+```csharp
+rateLimiterOptions.AddPolicy("NoQueuePolicy", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,                // 🎯 5 requisições por minuto
+            Window = TimeSpan.FromMinutes(1), // ⏰ 1 minuto
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0                  // 🚫 SEM fila - 429 imediato
+        }));
+```
+
+**Como funciona:**
+
+- **Zero Tolerância**: 6ª requisição = 429 na hora
+- **Demonstração**: Mostra diferença entre fila vs sem fila
+- **Ideal para**: APIs críticas que não podem ter delay
+
+##### **7. GlobalLimiter - Fallback Global**
+
+```csharp
+rateLimiterOptions.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+    httpContext => RateLimitPartition.GetSlidingWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 200,              // 🌐 200 requisições por IP
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 6,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 50                 // 🚪 Fila global generosa
+        }));
+```
+
+**Como funciona:**
+
+- **Fallback**: Usado quando endpoint não tem política específica
+- **Por IP**: Cada IP tem seu próprio limite de 200/min
+- **Proteção Geral**: Última linha de defesa
+
+#### 🔧 **Configurações Importantes**
+
+##### **Partition Key (Chave de Partição)**
+
+```csharp
+partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
+```
+
+- **Por IP**: Cada IP tem contadores separados
+- **Isolamento**: IP 192.168.1.1 não afeta limites do IP 192.168.1.2
+- **Fallback**: "unknown" se não conseguir determinar o IP
+
+##### **Queue Processing Order (Ordem da Fila)**
+
+```csharp
+QueueProcessingOrder = QueueProcessingOrder.OldestFirst  // FIFO
+QueueProcessingOrder = QueueProcessingOrder.NewestFirst // LIFO
+```
+
+##### **OnRejected (Comportamento ao Rejeitar)**
+
+```csharp
+rateLimiterOptions.OnRejected = async (context, _) =>
+{
+    var httpContext = context.HttpContext;
+    
+    // Log detalhado
+    logger?.LogWarning("🚫 Rate Limit Exceeded: {IP} - {Path} - Reason: {Reason}", 
+        httpContext.Connection.RemoteIpAddress,
+        httpContext.Request.Path,
+        context.Reason);
+    
+    // Headers informativos
+    httpContext.Response.Headers["Retry-After"] = "60";
+    httpContext.Response.Headers["X-RateLimit-Reason"] = context.Reason.ToString();
+    
+    // Resposta diferenciada
+    if (httpContext.Request.Path.StartsWithSegments("/api"))
+    {
+        // Para APIs: JSON estruturado
+        var response = new {
+            error = "Rate limit exceeded",
+            reason = context.Reason.ToString(),
+            tip = context.Reason == RateLimitReasonPhrase.QueueLimitExceeded 
+                ? "Queue is full. Try again when current requests complete."
+                : "Rate limit exceeded. Wait before making new requests."
+        };
+        await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }
+    else
+    {
+        // Para páginas web: mensagem simples
+        await httpContext.Response.WriteAsync($"Rate limit exceeded: {context.Reason}");
+    }
+};
+```
+
+#### 📊 **Comparação dos Algoritmos**
+
+| Algoritmo | Uso Ideal | Distribuição | Rajadas | Fila |
+|-----------|-----------|--------------|---------|------|
+| **Sliding Window** | Distribuição suave | ✅ Uniforme | ❌ Limitadas | ✅ Sim |
+| **Fixed Window** | Controle rigoroso | ❌ Pode ter picos | ✅ Permitidas no início | ⚠️ Opcional |
+| **Token Bucket** | Rajadas controladas | ⚠️ Moderada | ✅ Até o limite do balde | ✅ Sim |
+| **Concurrency** | Operações longas | N/A | N/A | ✅ Sim |
+
+#### ✅ **Benefícios Implementados**
+
+- **🛡️ Proteção DoS/DDoS**: Múltiplas camadas de proteção
+- **🎯 Políticas Específicas**: Diferentes limites para diferentes necessidades
+- **📊 Múltiplos Algoritmos**: Sliding Window, Fixed Window, Token Bucket, Concurrency
+- **🔍 Monitoramento**: Logs detalhados e headers informativos
+- **⚡ Performance**: Rate limiting nativo do .NET (alta performance)
+- **🌐 Particionamento**: Por IP para isolamento de usuários
+- **🚪 Controle de Fila**: Configurável por política
+- **📈 Métricas**: Headers de resposta com informações de limite
+
+---
+
+### 8. **Configuração CORS**
 
 #### 📍 Localização
 
@@ -360,7 +621,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    START([Request Iniciada]) --> CORS{CORS Check}
+    START([Request Iniciada]) --> RATE_LIMIT{Rate Limit Check}
+    RATE_LIMIT -->|Exceeded| RATE_BLOCK[❌ 429 Rate Limited]
+    RATE_LIMIT -->|OK| CORS{CORS Check}
+    
     CORS -->|Allow| HEADERS[Add Security Headers]
     CORS -->|Block| BLOCK1[❌ CORS Blocked]
     
@@ -390,11 +654,50 @@ flowchart TD
     
     style START fill:#e1f5fe
     style SUCCESS fill:#e8f5e8
+    style RATE_BLOCK fill:#fff3e0
     style BLOCK1 fill:#ffebee
     style UNAUTH fill:#ffebee
     style FORBID fill:#ffebee
     style CSRF_FAIL fill:#ffebee
     style LOG fill:#fff3e0
+```
+
+## 🚦 Fluxo de Rate Limiting
+
+```mermaid
+flowchart TD
+    START([Requisição Recebida]) --> RATE_CHECK{Rate Limit Check}
+    
+    RATE_CHECK -->|Within Limits| AUTH_CHECK[Continue to Auth]
+    RATE_CHECK -->|Exceeded| POLICY_CHECK{Which Policy?}
+    
+    POLICY_CHECK -->|GeneralPolicy| GENERAL[100 req/min<br/>Sliding Window]
+    POLICY_CHECK -->|AuthPolicy| AUTH_POLICY[5 req/5min<br/>Fixed Window]
+    POLICY_CHECK -->|StrictPolicy| STRICT[Token Bucket<br/>10 tokens, 2/30s]
+    POLICY_CHECK -->|ConcurrencyPolicy| CONCURRENCY[5 simultaneous<br/>per IP]
+    POLICY_CHECK -->|GlobalLimiter| GLOBAL[200 req/min<br/>per IP fallback]
+    
+    GENERAL --> BLOCK[❌ 429 Rate Limited]
+    AUTH_POLICY --> BLOCK
+    STRICT --> BLOCK
+    CONCURRENCY --> BLOCK
+    GLOBAL --> BLOCK
+    
+    BLOCK --> LOG[Log Attempt]
+    LOG --> HEADERS[Add Retry Headers]
+    HEADERS --> RESPONSE[Return 429 Response]
+    
+    AUTH_CHECK --> CONTINUE[✅ Process Request]
+    
+    style START fill:#e1f5fe
+    style CONTINUE fill:#e8f5e8
+    style BLOCK fill:#ffebee
+    style LOG fill:#fff3e0
+    style GENERAL fill:#f3e5f5
+    style AUTH_POLICY fill:#e0f2f1
+    style STRICT fill:#fce4ec
+    style CONCURRENCY fill:#e8f5e8
+    style GLOBAL fill:#fff8e1
 ```
 
 ## 🚀 Como Executar
@@ -472,6 +775,27 @@ curl -X POST https://localhost:5001/api/antiforgery/validate \
 - Use o campo "Test XSS Protection"
 - Tente inputs como: `<script>alert('xss')</script>`
 
+### Testando Rate Limiting
+
+- Acesse `/Home/RateLimit`
+- Use os testes individuais para cada política
+- Execute testes de stress para disparar os limites
+
+```bash
+# Teste da política geral (100/min)
+curl -X GET https://localhost:5001/api/ratelimit/test-general
+
+# Teste da política de auth (5/5min)
+curl -X POST https://localhost:5001/api/ratelimit/test-auth \
+  -H "Content-Type: application/json" \
+  -d '{"test":"data"}'
+
+# Teste de múltiplas requisições (stress test)
+for i in {1..10}; do
+  curl -X GET https://localhost:5001/api/ratelimit/test-rapid &
+done
+```
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -507,6 +831,8 @@ JwtAuthApp/
 | **Unauthorized Access** | JWT + Authorization Policies | ✅ |
 | **Input Injection** | Sanitização + Validação | ✅ |
 | **Security Headers** | Middleware personalizado | ✅ |
+| **DoS/DDoS** | Rate Limiting (múltiplas políticas) | ✅ |
+| **Brute Force** | Rate Limiting + Logging | ✅ |
 
 ## 🔐 Considerações de Segurança
 

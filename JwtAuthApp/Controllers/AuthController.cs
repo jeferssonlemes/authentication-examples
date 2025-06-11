@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using JwtAuthApp.Models;
 using JwtAuthApp.Services;
 
@@ -17,12 +18,13 @@ namespace JwtAuthApp.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("AuthPolicy")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
             try
             {
                 var response = _authService.Login(request);
-                
+
                 if (response == null)
                 {
                     return Unauthorized(new { message = "Usuário ou senha inválidos" });
@@ -47,6 +49,7 @@ namespace JwtAuthApp.Controllers
 
         [HttpGet("profile")]
         [Authorize]
+        [EnableRateLimiting("GeneralPolicy")]
         public IActionResult GetProfile()
         {
             var username = User.Identity?.Name;
@@ -61,4 +64,4 @@ namespace JwtAuthApp.Controllers
             });
         }
     }
-} 
+}

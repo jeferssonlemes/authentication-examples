@@ -1,0 +1,216 @@
+@{
+    ViewData["Title"] = "Rate Limiting Tests";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🚦 Rate Limiting Tests</h1>
+            <p class="lead">Teste as diferentes políticas de rate limiting implementadas na aplicação.</p>
+        </div>
+    </div>
+
+    <!-- Rate Limiting Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Status do Rate Limiting</h5>
+                </div>
+                <div class="card-body">
+                    <div id="rateLimitStatus" class="alert alert-info">
+                        <i class="fas fa-spinner fa-spin"></i> Carregando informações das políticas...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Controls -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-play-circle"></i> Testes Individuais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group-vertical w-100" role="group">
+                        <button type="button" class="btn btn-primary mb-2" onclick="testGeneralPolicy()">
+                            <i class="fas fa-clock"></i> Teste Política Geral (100/min)
+                        </button>
+                        <button type="button" class="btn btn-warning mb-2" onclick="testAuthPolicy()">
+                            <i class="fas fa-lock"></i> Teste Política Auth (5/5min)
+                        </button>
+                        <button type="button" class="btn btn-danger mb-2" onclick="testStrictPolicy()">
+                            <i class="fas fa-shield-alt"></i> Teste Política Rigorosa (Token Bucket)
+                        </button>
+                        <button type="button" class="btn btn-info mb-2" onclick="testConcurrencyPolicy()">
+                            <i class="fas fa-users"></i> Teste Concorrência (5 simultâneas)
+                        </button>
+                        <button type="button" class="btn btn-success mb-2" onclick="testRapidPolicy()">
+                            <i class="fas fa-tachometer-alt"></i> Teste Rápido (20/min)
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="testGlobalPolicy()">
+                            <i class="fas fa-globe"></i> Teste Global (200/min)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bomb"></i> Testes de Stress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label for="requestCount">Número de Requisições:</label>
+                        <input type="number" id="requestCount" class="form-control" value="10" min="1" max="100">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="requestInterval">Intervalo (ms):</label>
+                        <input type="number" id="requestInterval" class="form-control" value="100" min="10" max="5000">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="testEndpoint">Endpoint para Teste:</label>
+                        <select id="testEndpoint" class="form-control">
+                            <option value="test-general">Política Geral</option>
+                            <option value="test-auth">Política Auth</option>
+                            <option value="test-rapid">Política Rápida</option>
+                            <option value="test-global">Política Global</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-warning w-100" onclick="runStressTest()">
+                        <i class="fas fa-bolt"></i> Executar Teste de Stress
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Simulation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-lock"></i> Simulação de Login (Rate Limited)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" id="loginUsername" class="form-control mb-2" placeholder="Username"
+                                value="test">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="password" id="loginPassword" class="form-control mb-2" placeholder="Password"
+                                value="test">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-primary w-100" onclick="simulateLogin()">
+                                <i class="fas fa-sign-in-alt"></i> Simular Login
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">Limitado a 5 tentativas por 5 minutos por IP</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concurrency Test -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-network-wired"></i> Teste de Concorrência</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="number" id="concurrentRequests" class="form-control mb-2"
+                                placeholder="Requisições Simultâneas" value="10" min="1" max="20">
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-info w-100" onclick="testConcurrentRequests()">
+                                <i class="fas fa-rocket"></i> Testar Concorrência
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">Máximo de 5 requisições simultâneas permitidas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-chart-line"></i> Resultados dos Testes</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearResults()">
+                        <i class="fas fa-trash"></i> Limpar
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="testResults" style="max-height: 400px; overflow-y: auto;">
+                        <div class="text-muted text-center py-4">
+                            <i class="fas fa-clipboard-list fa-2x mb-2"></i><br>
+                            Nenhum teste executado ainda. Use os botões acima para começar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Estatísticas dos Testes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2">
+                            <h6>Total Requests</h6>
+                            <span id="totalRequests" class="badge badge-primary fs-6">0</span>
+                        </div>
+                        <div class="col-md-2">
+                            <h6>Successful</h6>
+                            <span id="successfulRequests" class="badge badge-success fs-6">0</span>
+                        </div>
+                        <div class="col-md-2">
+                            <h6>Rate Limited</h6>
+                            <span id="rateLimitedRequests" class="badge badge-warning fs-6">0</span>
+                        </div>
+                        <div class="col-md-2">
+                            <h6>Failed</h6>
+                            <span id="failedRequests" class="badge badge-danger fs-6">0</span>
+                        </div>
+                        <div class="col-md-2">
+                            <h6>Success Rate</h6>
+                            <span id="successRate" class="badge badge-info fs-6">0%</span>
+                        </div>
+                        <div class="col-md-2">
+                            <h6>Avg Response</h6>
+                            <span id="avgResponseTime" class="badge badge-secondary fs-6">0ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/rate-limit-tests.js"></script>
+    <script>
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function () {
+            loadRateLimitPolicies();
+        });
+    </script>
+}
