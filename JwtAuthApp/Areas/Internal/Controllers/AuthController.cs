@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using JwtAuthApp.Models;
 using JwtAuthApp.Services;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
+    [Route("api/internal/[controller]")]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {

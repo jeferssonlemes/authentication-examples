@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]")]
+    [Route("api/[controller]")] // Rota de compatibilidade
+    [Authorize(Policy = "AdminOnly")]
     public class AdminController : ControllerBase
     {
         // Endpoint que apenas ADMIN pode acessar

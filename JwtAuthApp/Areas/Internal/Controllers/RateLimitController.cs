@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
+    [Route("api/internal/[controller]")]
     [Route("api/[controller]")]
     public class RateLimitController : ControllerBase
     {

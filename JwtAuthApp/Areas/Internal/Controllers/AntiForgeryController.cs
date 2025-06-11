@@ -2,10 +2,13 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
+    [Route("api/internal/[controller]")]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class AntiForgeryController : ControllerBase
     {
         private readonly IAntiforgery _antiforgery;

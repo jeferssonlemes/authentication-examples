@@ -1,18 +1,20 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
+    [Route("api/internal/[controller]")]
     [Route("api/[controller]")]
-    [Authorize(Policy = "ViewDashboard")]
+    [Authorize]
     public class DashboardController : ControllerBase
     {
         [HttpGet]
         public IActionResult GetDashboard()
         {
             var username = User.Identity?.Name;
-            
+
             var dashboardData = new
             {
                 titulo = "Dashboard Principal",
@@ -49,4 +51,4 @@ namespace JwtAuthApp.Controllers
             });
         }
     }
-} 
+}

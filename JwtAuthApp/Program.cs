@@ -84,12 +84,17 @@ app.UseRateLimitingWithHeaders();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configurar rotas MVC
+// Configurar rotas MVC (para controllers de Views como Home, Error)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Manter rotas da API
+// Configurar rotas para Areas
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+// Configurar rotas da API com Areas
 app.MapControllers();
 
 app.Run();

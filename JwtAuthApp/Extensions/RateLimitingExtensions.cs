@@ -102,21 +102,19 @@ namespace JwtAuthApp.Extensions
                 {
                     var httpContext = context.HttpContext;
 
-                    // Log da tentativa bloqueada com mais detalhes
+                    // Log da tentativa bloqueada
                     var logger = httpContext.RequestServices.GetService<ILogger<Program>>();
-                    logger?.LogWarning("🚫 Rate Limit Exceeded: {IP} - {Path} - {UserAgent} - Reason: {Reason}",
+                    logger?.LogWarning("🚫 Rate Limit Exceeded: {IP} - {Path} - {UserAgent}",
                         httpContext.Connection.RemoteIpAddress,
                         httpContext.Request.Path,
-                        httpContext.Request.Headers["User-Agent"].ToString(),
-                        context.Reason);
+                        httpContext.Request.Headers["User-Agent"].ToString());
 
-                    // Adicionar headers informativos com mais detalhes
+                    // Adicionar headers informativos
                     httpContext.Response.Headers["Retry-After"] = "60";
                     httpContext.Response.Headers["X-RateLimit-Policy"] = "RateLimited";
                     httpContext.Response.Headers["X-RateLimit-Remaining"] = "0";
-                    httpContext.Response.Headers["X-RateLimit-Reason"] = context.Reason.ToString();
 
-                    // Para APIs, retornar JSON com mais informações
+                    // Para APIs, retornar JSON
                     if (httpContext.Request.Path.StartsWithSegments("/api"))
                     {
                         httpContext.Response.StatusCode = 429; // Too Many Requests
@@ -126,13 +124,9 @@ namespace JwtAuthApp.Extensions
                         {
                             error = "Rate limit exceeded",
                             message = "Too many requests. Please try again later.",
-                            reason = context.Reason.ToString(),
                             retryAfter = "60", // segundos
                             timestamp = DateTime.UtcNow,
-                            requestId = httpContext.TraceIdentifier,
-                            tip = context.Reason == RateLimitReasonPhrase.QueueLimitExceeded
-                                ? "Queue is full. Try again when current requests complete."
-                                : "Rate limit exceeded. Wait before making new requests."
+                            requestId = httpContext.TraceIdentifier
                         });
 
                         await httpContext.Response.WriteAsync(response);
@@ -141,7 +135,7 @@ namespace JwtAuthApp.Extensions
                     {
                         // Para páginas web, retornar mensagem simples
                         httpContext.Response.StatusCode = 429;
-                        await httpContext.Response.WriteAsync($"Rate limit exceeded: {context.Reason}. Please try again later.");
+                        await httpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.");
                     }
                 };
             });

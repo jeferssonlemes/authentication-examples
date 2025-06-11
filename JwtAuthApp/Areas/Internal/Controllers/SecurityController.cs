@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using System.Linq;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/internal/[controller]")]
+    [Route("api/[controller]")] // Rota de compatibilidade
     public class SecurityController : ControllerBase
     {
         private readonly ILogger<SecurityController> _logger;

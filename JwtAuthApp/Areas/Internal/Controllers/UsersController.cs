@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace JwtAuthApp.Controllers
+namespace JwtAuthApp.Areas.Internal.Controllers
 {
+    [Area("Internal")]
     [ApiController]
+    [Route("api/internal/[controller]")]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         [HttpGet]
@@ -165,4 +169,4 @@ namespace JwtAuthApp.Controllers
             });
         }
     }
-} 
+}
